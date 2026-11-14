@@ -1,4 +1,4 @@
-// Route display (F3): polylines from routes/route_<name>.geojson files listed in
+// Route display: polylines from routes/route_<name>.geojson files listed in
 // routes/index.json. Numbers are shown as stored; nothing is computed here.
 (function () {
   'use strict';
@@ -51,7 +51,10 @@
     var line = L.geoJSON(feature, {
       coordsToLatLng: Cockpit.toLatLng,
       pane: 'routes',
-      style: function () { return { color: '#ff7043', weight: 4, opacity: 1 }; },
+      style: function () {
+        // A route click must not also open the layer popup.
+        return { color: '#ff7043', weight: 4, opacity: 1, bubblingMouseEvents: false };
+      },
       onEachFeature: function (f, layer) {
         layer.bindPopup(function () { return buildPopup(f.properties || {}); });
       }

@@ -3,38 +3,70 @@
   "features": [
     {
       "type": "Feature",
-      "geometry": { "type": "Point", "coordinates": [200, 200] },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.43608473405128,
+          18.482886387893146
+        ]
+      },
       "properties": {
         "id": "poi-001",
-        "name": "Dummy Site Alpha",
-        "type": "optical feature",
+        "name": "Cliff A",
+        "type": "cliff edge",
         "source": "optical",
-        "evidence": "DUMMY: placeholder data, not a real observation.",
-        "selection_rule": "DUMMY: no rule defined yet (PRD 3.2, 12.5)"
+        "evidence": "Selected by eye from hillshade.png; not a CRISM detection"
       }
     },
     {
       "type": "Feature",
-      "geometry": { "type": "Point", "coordinates": [780, 720] },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.40699981127588,
+          18.465138511582406
+        ]
+      },
       "properties": {
         "id": "poi-002",
-        "name": "Dummy Site Beta",
-        "type": "hydrous mineral detection",
-        "source": "CRISM",
-        "evidence": "DUMMY: placeholder data, not a real observation.",
-        "selection_rule": "DUMMY: no rule defined yet (PRD 3.2, 12.5)"
+        "name": "Plateau B",
+        "type": "plateau",
+        "source": "optical",
+        "evidence": "Selected by eye from hillshade.png; not a CRISM detection"
       }
     },
     {
       "type": "Feature",
-      "geometry": { "type": "Point", "coordinates": [300, 800] },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.43540990985694,
+          18.462844109321704
+        ]
+      },
       "properties": {
         "id": "poi-003",
-        "name": "Dummy Site Gamma",
-        "type": "hydrous mineral detection",
-        "source": "CRISM",
-        "evidence": "DUMMY: placeholder data, not a real observation.",
-        "selection_rule": "DUMMY: no rule defined yet (PRD 3.2, 12.5)"
+        "name": "Crater C",
+        "type": "crater",
+        "source": "optical",
+        "evidence": "Selected by eye from hillshade.png; not a CRISM detection"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.40565016288724,
+          18.439292744939774
+        ]
+      },
+      "properties": {
+        "id": "poi-004",
+        "name": "Cone D",
+        "type": "cone",
+        "source": "optical",
+        "evidence": "Selected by eye from hillshade.png; not a CRISM detection"
       }
     }
   ]

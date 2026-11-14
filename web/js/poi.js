@@ -1,13 +1,22 @@
-// Points of interest (F2): circle markers from poi.geojson with a click popup.
+// Points of interest: circle markers from poi.geojson with a click popup.
 // Data strings are written with textContent only, never as HTML.
 (function () {
   'use strict';
 
   var Cockpit = window.Cockpit;
 
-  // Fixed colour per source. The source name is also shown in the popup and the list.
-  var SOURCE_COLORS = { CRISM: '#4fc3f7', optical: '#ffd54f' };
-  var DEFAULT_COLOR = '#e0e0e0';
+  // Marker colour per source value. Colours are handed out in order of first use,
+  // so no source name is written in the code. The source is also named in the popup.
+  var PALETTE = ['#ffd54f', '#4fc3f7', '#81c784', '#ba68c8', '#ff8a65', '#e0e0e0'];
+  var sourceColors = {};
+
+  function colorFor(source) {
+    var key = String(source);
+    if (!Object.prototype.hasOwnProperty.call(sourceColors, key)) {
+      sourceColors[key] = PALETTE[Object.keys(sourceColors).length % PALETTE.length];
+    }
+    return sourceColors[key];
+  }
 
   function addRow(parent, label, value) {
     var row = document.createElement('div');
@@ -37,9 +46,10 @@
     var layer = L.geoJSON(poi, {
       coordsToLatLng: Cockpit.toLatLng,
       pointToLayer: function (feature, latlng) {
-        var color = SOURCE_COLORS[feature.properties.source] || DEFAULT_COLOR;
+        var color = colorFor(feature.properties.source);
         return L.circleMarker(latlng, {
           pane: 'poi',
+          bubblingMouseEvents: false, // a POI click must not also open the layer popup
           radius: 8,
           color: '#000',
           weight: 2,

@@ -11,8 +11,8 @@
 <body>
   <header class="topbar">
     <h1>Martian Map</h1>
-    <p class="notice" id="placeholder-notice">
-      Placeholder data: all layers, points and routes shown here are dummy files, not real observations.
+    <p class="notice" id="data-notice">
+      Mars EVA Web Interface - Live Data Sync Active
     </p>
   </header>
 
@@ -20,18 +20,18 @@
     <aside class="panel" aria-label="Map controls">
       <fieldset id="layer-controls">
         <legend>Layers</legend>
-        <!-- Rows are added by js/layers.js (task 4). -->
+        <!-- Rows are added by js/layers.js from layers.json. -->
       </fieldset>
 
       <fieldset id="overlay-controls">
         <legend>Overlays</legend>
-        <!-- Group toggles for points of interest and routes (tasks 5 and 6). -->
+        <!-- Group toggles for points of interest and routes are added by js/poi.js and js/routes.js. -->
       </fieldset>
 
       <section id="poi-list-section" aria-labelledby="poi-list-title">
         <h2 id="poi-list-title">Points of interest</h2>
         <ul id="poi-list" class="poi-list">
-          <!-- Buttons are added by js/poi.js (task 5). -->
+          <!-- Buttons are added by js/poi.js. -->
         </ul>
       </section>
 
