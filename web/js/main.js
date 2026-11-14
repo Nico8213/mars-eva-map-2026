@@ -1,11 +1,11 @@
 // Cockpit entry point: creates the map and fits it to the layer extents.
-// Layers, POIs and routes are added by later scripts (tasks 4 to 6).
+// Layers, POIs and routes are added by the other scripts in js/.
 (function () {
   'use strict';
 
   var Cockpit = window.Cockpit;
 
-  // CRS name is not decided yet (INTERFACES.md, PRD 12.6). Do not invent one.
+  // The CRS name is not decided yet (see docs/INTERFACES.md). Do not invent one.
   Cockpit.crsLabel = 'TBD';
 
   // Unit of the map coordinates: 'm' (projected metres) or 'deg' (geographic degrees).
@@ -82,11 +82,14 @@
     }
   }
 
-  // layers.json lives in layers/ next to the PNGs (see design.md).
+  // Start loading the data cards early; popups wait for them when needed.
+  Cockpit.loadDataCards();
+
+  // layers.json lives in layers/ next to the PNGs.
   Cockpit.loadJson('layers/layers.json').then(function (layerEntries) {
     Cockpit.layerEntries = layerEntries;
     fitToLayers(layerEntries);
-    // Tasks 4 to 6 hook in here once their scripts exist.
+    // layers.js builds the layer menu when it receives this event.
     document.dispatchEvent(new CustomEvent('cockpit:layers-loaded', { detail: layerEntries }));
     announceMapReady();
   }).catch(function (err) {

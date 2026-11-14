@@ -82,6 +82,31 @@
     return bounds;
   };
 
+  // Data cards (data_cards.json), keyed by card id. Popups read the license and
+  // other fields from here; no license text is written in the code.
+  Cockpit.dataCards = new Map();
+
+  // Load and parse data_cards.json. Resolves when done, also when the file is
+  // missing or invalid (an error is shown in the status region and the map keeps working).
+  Cockpit.loadDataCards = function () {
+    Cockpit.dataCardsReady = Cockpit.loadJson('data_cards.json').then(function (cards) {
+      if (!Array.isArray(cards)) {
+        throw new Error('data_cards.json must be a JSON array');
+      }
+      cards.forEach(function (card) {
+        if (card && card.id !== undefined) { Cockpit.dataCards.set(card.id, card); }
+      });
+    }).catch(function (err) {
+      Cockpit.showError(err.message);
+    });
+    return Cockpit.dataCardsReady;
+  };
+
+  // The data card whose id matches a layer's data_card_id, or null.
+  Cockpit.findCard = function (cardId) {
+    return Cockpit.dataCards.get(cardId) || null;
+  };
+
   // Show an error in the status region. Text is set with textContent only.
   Cockpit.showError = function (message) {
     var status = document.getElementById('status');
