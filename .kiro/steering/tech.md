@@ -1,0 +1,7 @@
+# Technical rules
+- Data and algorithms: Python 3.12 with numpy, scipy, rasterio and scikit-image. Scripts live in pipeline/, routing/ and validation/. Every script must run from the command line and write its output to files. At the end, every script prints one line per file it wrote (path and size).
+- Website: plain static HTML and JavaScript. Keep Leaflet in web/vendor/ (no CDN). Use L.CRS.Simple with imageOverlay. Never use OpenStreetMap or any Earth base map.
+- Every number must have a source, a version and a date. Validation numbers must be computed by code. Put parameters in a config file before running, and never change parameters after seeing results.
+- Do not add features that were not requested. Do not delete files in other people's folders. Keep every file under 50 MB. Keep raw data in local_only/ or data/raw/, never in the repository.
+- License: Apache 2.0. Record third-party content in docs/CITATIONS.md.
+- Language: the team chats with you in Chinese, but everything written into the project must be in English: website text, data cards, README, REPRODUCE, CITATIONS, SUBMISSION, Kiro spec files (requirements, design, tasks), code comments, commit messages and identifiers.
