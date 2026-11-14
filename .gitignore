@@ -1,5 +1,4 @@
 # Never uploaded to GitHub
-local_only/
 data/raw/
 internal/
 *.IMG
@@ -11,14 +10,4 @@ __pycache__/
 *.pyc
 node_modules/
 .env
-.DS_Store
-local_only/
-data/raw/
-*.IMG
-*.img
-*.jp2
-internal/
-.venv/
-__pycache__/
-node_modules/
 .DS_Store
