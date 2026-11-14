@@ -13,10 +13,10 @@
   - [x] 2.3 Add `css/cockpit.css` for layout, focus outlines and the placeholder-data notice
   - _Requirements: R1, R7_
 
-- [ ] 3. Data helpers and map setup (R1, R2)
-  - [ ] 3.1 `js/data.js`: `DATA_ROOT`, `loadJson`, `toLatLng`, `extentToBounds`, `showError`
-  - [ ] 3.2 `js/main.js`: create the map with `L.CRS.Simple`, no tile layer, create panes, metre scale and E/N readout, show "CRS: TBD"
-  - [ ] 3.3 Fit the view to the union of all layer extents
+- [x] 3. Data helpers and map setup (R1, R2)
+  - [x] 3.1 `js/data.js`: `DATA_ROOT`, `loadJson`, `toLatLng`, `extentToBounds`, `showError`
+  - [x] 3.2 `js/main.js`: create the map with `L.CRS.Simple`, no tile layer, create panes, metre scale and E/N readout, show "CRS: TBD"
+  - [x] 3.3 Fit the view to the union of all layer extents
   - _Requirements: R1, R2_
 
 - [ ] 4. Layers with toggle and opacity (R3)
