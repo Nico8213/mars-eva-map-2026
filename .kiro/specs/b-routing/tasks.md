@@ -127,8 +127,8 @@ Steps build on each other: dependencies and config, config loading, generator, i
 - [ ] 7. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 8. Implement GeoJSON route output
-  - [ ] 8.1 Add `validate_name`, `get_commit_hash`, `build_feature`, and `write_route` to `routing/route.py`
+- [x] 8. Implement GeoJSON route output
+  - [x] 8.1 Add `validate_name`, `get_commit_hash`, `build_feature`, and `write_route` to `routing/route.py`
     - `validate_name`: regex `^[A-Za-z0-9_-]{1,64}$`, error exit 2 naming the rule
     - `get_commit_hash`: `git rev-parse HEAD`, returns `"unknown"` on any failure
     - `build_feature`: one Feature, LineString of pixel-centre coordinates in path order, exactly nine properties (`name`, `start_poi`, `end_poi`, `length_m`, `max_slope_deg`, `slope_threshold_deg`, `data_used`, `cost_function`, `generated_from`); `length_m` and `max_slope_deg` rounded to 2 decimals; `cost_function` text built from loaded config values, 1 to 500 characters; `generated_from` is `commit=<hash>; config=<minified config>`; no validation metric

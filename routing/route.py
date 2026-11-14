@@ -5,7 +5,10 @@ from __future__ import annotations
 import datetime
 import json
 import math
+import os
 import re
+import subprocess
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -327,3 +330,120 @@ def path_cost(cost: np.ndarray, path: list[tuple[int, int]]) -> float:
         step = math.sqrt(2.0) if (r0 != r1 and c0 != c1) else 1.0
         total += 0.5 * (float(cost[r0, c0]) + float(cost[r1, c1])) * step
     return total
+
+
+_NAME_RE = re.compile(r"[A-Za-z0-9_-]{1,64}")
+_COST_FUNCTION_MAX = 500
+
+
+def validate_name(name: str) -> None:
+    """Accept only names matching ^[A-Za-z0-9_-]{1,64}$. Raises RoutingError (exit code 2)."""
+    if not isinstance(name, str) or _NAME_RE.fullmatch(name) is None:
+        raise RoutingError(
+            f"invalid route name {name!r}: name must match ^[A-Za-z0-9_-]{{1,64}}$ "
+            "(1 to 64 characters: letters, digits, underscore, hyphen)",
+            2,
+        )
+
+
+def get_commit_hash() -> str:
+    """Return the output of `git rev-parse HEAD`, or "unknown" on any failure."""
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=True,
+        )
+        commit = result.stdout.strip()
+        return commit if commit else "unknown"
+    except Exception:
+        return "unknown"
+
+
+def _cost_function_text(raw_config: dict, p: CostParams) -> str:
+    def val(key: str) -> object:
+        return raw_config[key]["value"]
+
+    params = (
+        f"cost_base={val('cost_base')}, cost_coefficient={val('cost_coefficient')}, "
+        f"cost_exponent={val('cost_exponent')}, slope_limit_deg={val('slope_limit_deg')}, "
+        f"connectivity={val('connectivity')}, geometric=true"
+    )
+    text = (
+        f"{val('cost_function')}: cost = cost_base + cost_coefficient * "
+        f"(slope / slope_limit_deg) ^ cost_exponent; {params}"
+    )
+    if len(text) > _COST_FUNCTION_MAX:
+        text = f"{val('cost_function')}: {params}"
+    return text[:_COST_FUNCTION_MAX]
+
+
+def build_feature(
+    name: str,
+    path: list[tuple[int, int]],
+    slope: np.ndarray,
+    g: Grid,
+    p: CostParams,
+    raw_config: dict,
+    start_poi: str | None,
+    end_poi: str | None,
+    commit: str,
+) -> dict:
+    """Build the GeoJSON Feature for a route. Contains no validation metric."""
+    coords = [list(pixel_to_coord(r, c, g)) for r, c in path]
+    length = 0.0
+    for (e0, n0), (e1, n1) in zip(coords, coords[1:]):
+        length += math.hypot(e1 - e0, n1 - n0)
+    max_slope = max(float(slope[r, c]) for r, c in path)
+    config_min = json.dumps(raw_config, separators=(",", ":"), ensure_ascii=False)
+    return {
+        "type": "Feature",
+        "geometry": {"type": "LineString", "coordinates": coords},
+        "properties": {
+            "name": name,
+            "start_poi": start_poi,
+            "end_poi": end_poi,
+            "length_m": round(length, 2),
+            "max_slope_deg": round(max_slope, 2),
+            "slope_threshold_deg": raw_config["slope_limit_deg"]["value"],
+            "data_used": ["slope"],
+            "cost_function": _cost_function_text(raw_config, p),
+            "generated_from": f"commit={commit}; config={config_min}",
+        },
+    }
+
+
+def write_route(feature: dict, name: str) -> Path:
+    """Write routing/out/route_<name>.geojson atomically. Raises RoutingError (exit code 2)."""
+    target = OUT_DIR / f"route_{name}.geojson"
+    tmp_name: str | None = None
+    try:
+        OUT_DIR.mkdir(parents=True, exist_ok=True)
+        data = json.dumps(feature, indent=2, ensure_ascii=False).encode("utf-8")
+        with tempfile.NamedTemporaryFile(
+            dir=OUT_DIR, prefix=f".route_{name}.", suffix=".tmp", delete=False
+        ) as fh:
+            tmp_name = fh.name
+            fh.write(data)
+        size = os.path.getsize(tmp_name)
+        if size >= MAX_BYTES:
+            raise RoutingError(
+                f"route file {target}: size {size} bytes reaches the limit of {MAX_BYTES} bytes",
+                2,
+            )
+        os.replace(tmp_name, target)
+        tmp_name = None
+    except RoutingError:
+        raise
+    except (OSError, ValueError) as exc:
+        raise RoutingError(f"cannot write route file {target}: {exc}", 2) from None
+    finally:
+        if tmp_name is not None:
+            try:
+                os.unlink(tmp_name)
+            except OSError:
+                pass
+    return target
