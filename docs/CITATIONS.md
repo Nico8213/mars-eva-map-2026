@@ -8,7 +8,7 @@ Every source used in this project is listed here, including open and freely avai
 
 | Name | Organization | Version | URL | Accessed | License | Used in |
 | --- | --- | --- | --- | --- | --- | --- |
-| HiRISE DTM (Jezero crop) | USGS Astrogeology Science Center | TBD (exact version as downloaded, see data/processed/sources.md), 1 m/px | https://doi.org/10.5066/P9REJ9JN | 2026-11-14 (downloaded) | TBD | Terrain layer (F1); slope raster for route cost (F3) |
+| Mars 2020 Terrain Relative Navigation HiRISE DTM Mosaic, Jezero crop (Fergason, R. L., et al., 2020). File: JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40.tif | USGS Astrogeology Science Center | 006 (taken from the file name), 1 m/px | https://doi.org/10.5066/P9REJ9JN ; product page: https://astrogeology.usgs.gov/search/map/mars_2020_terrain_relative_navigation_hirise_dtm_mosaic | 2026-11-14 (downloaded) | CC0 1.0 Universal (stated at https://www.usgs.gov/data/mars-2020-terrain-relative-navigation-hirise-dtm-mosaic); the USGS product page also asks users to cite the authors | Terrain layer (F1); slope raster for route cost (F3) |
 | CTX orthorectified mosaic | TBD | TBD, 5 m/px | TBD | TBD | TBD | Optical layer (F1) |
 | HiRISE orthorectified image | TBD | TBD, 0.25 m/px | TBD | TBD | TBD | Optical layer (F1) |
 | CRISM data archived at the PDS | NASA PDS Geosciences Node; MRO CRISM team | TBD (product ID or DOI of the product behind the layer; the PDS lists MRDR v4 and MTRDR/TER Release 19) | https://pds-geosciences.wustl.edu/missions/mro/crism.htm | 2026-11-14 | No access or use restrictions stated by PDS; cite as published research. Statement: https://pds-geosciences.wustl.edu/faq.html | POI source (F2); route endpoint selection (F3) |
