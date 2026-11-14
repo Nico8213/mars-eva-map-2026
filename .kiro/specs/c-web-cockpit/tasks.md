@@ -31,10 +31,10 @@
   - [x] 5.3 POI list buttons in the side panel for keyboard access, and a group toggle
   - _Requirements: R4, R7_
 
-- [ ] 6. Route display (R5)
-  - [ ] 6.1 `js/routes.js`: read `routes/index.json`, load each route with `Promise.allSettled`
-  - [ ] 6.2 Draw polylines above layers, popup with route properties, "n/a" for missing fields
-  - [ ] 6.3 Group toggle for routes
+- [x] 6. Route display (R5)
+  - [x] 6.1 `js/routes.js`: read `routes/index.json`, load each route with `Promise.allSettled`
+  - [x] 6.2 Draw polylines above layers, popup with route properties, "n/a" for missing fields
+  - [x] 6.3 Group toggle for routes
   - _Requirements: R5_
 
 - [ ] 7. Manual verification
