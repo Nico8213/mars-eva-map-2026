@@ -37,15 +37,15 @@
   - [x] 6.3 Group toggle for routes
   - _Requirements: R5_
 
-- [ ] 7. Manual verification
-  - [ ] 7.1 Serve `web/` locally and confirm no external network requests
-  - [ ] 7.2 Check toggle, opacity, POI popup, route popup and error paths
-  - [ ] 7.3 Check keyboard use of all controls
-  - [ ] 7.4 Confirm the deploy workflow publishes `web/` with the data and vendor files
+- [x] 7. Manual verification
+  - [x] 7.1 Serve `web/` locally and confirm no external network requests
+  - [x] 7.2 Check toggle, opacity, POI popup, route popup and error paths
+  - [x] 7.3 Check keyboard use of all controls
+  - [x] 7.4 Confirm the deploy workflow publishes `web/` with the data and vendor files
   - _Requirements: R1 to R7_
 
-- [ ] 8. Housekeeping
-  - [ ] 8.1 Add the Leaflet entry (name, version, license BSD-2-Clause) to `docs/CITATIONS.md` and ask D to merge it, because `docs/` belongs to D
-  - [ ] 8.2 Add one line to the C AI log (`docs/ai_log/C-charles.md`)
-  - [ ] 8.3 Commit with the `[C]` prefix in English
+- [x] 8. Housekeeping
+  - [x] 8.1 Add the Leaflet entry (name, version, license BSD-2-Clause) to `docs/CITATIONS.md` and ask D to merge it, because `docs/` belongs to D
+  - [x] 8.2 Add one line to the C AI log (`docs/ai_log/C-charles.md`)
+  - [x] 8.3 Commit with the `[C]` prefix in English
   - _Requirements: R1_
