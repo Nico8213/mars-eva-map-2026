@@ -185,7 +185,7 @@ Steps build on each other: dependencies and config, config loading, generator, i
     - Python version is 3.12 or newer (assert sys.version_info >= (3, 12); do not test for equality with 3.12)
     - _Requirements: 8.1, 8.8, 9.1_
 
-- [ ] 11. Final checkpoint - Ensure all tests pass
+- [x] 11. Final checkpoint - Ensure all tests pass
   - Run `python -m pytest routing/tests -q` and ensure all tests pass, ask the user if questions arise.
 
 ## Notes
