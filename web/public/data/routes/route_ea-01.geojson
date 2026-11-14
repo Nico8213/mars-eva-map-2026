@@ -1,0 +1,46 @@
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [
+      [
+        200,
+        200
+      ],
+      [
+        320,
+        260
+      ],
+      [
+        450,
+        330
+      ],
+      [
+        560,
+        480
+      ],
+      [
+        650,
+        600
+      ],
+      [
+        780,
+        720
+      ]
+    ]
+  },
+  "properties": {
+    "name": "ea-01",
+    "start_poi": "poi-001",
+    "end_poi": "poi-002",
+    "length_m": 794.7,
+    "max_slope_deg": 12.0,
+    "slope_threshold_deg": 15.0,
+    "data_used": [
+      "terrain",
+      "spectral"
+    ],
+    "cost_function": "DUMMY: straight polyline for display testing, not computed by the router.",
+    "generated_from": "DUMMY: hand-written placeholder, no commit"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [200, 200] },
+      "properties": {
+        "id": "poi-001",
+        "name": "Dummy Site Alpha",
+        "type": "optical feature",
+        "source": "optical",
+        "evidence": "DUMMY: placeholder data, not a real observation.",
+        "selection_rule": "DUMMY: no rule defined yet (PRD 3.2, 12.5)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [780, 720] },
+      "properties": {
+        "id": "poi-002",
+        "name": "Dummy Site Beta",
+        "type": "hydrous mineral detection",
+        "source": "CRISM",
+        "evidence": "DUMMY: placeholder data, not a real observation.",
+        "selection_rule": "DUMMY: no rule defined yet (PRD 3.2, 12.5)"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [300, 800] },
+      "properties": {
+        "id": "poi-003",
+        "name": "Dummy Site Gamma",
+        "type": "hydrous mineral detection",
+        "source": "CRISM",
+        "evidence": "DUMMY: placeholder data, not a real observation.",
+        "selection_rule": "DUMMY: no rule defined yet (PRD 3.2, 12.5)"
+      }
+    }
+  ]
+}
