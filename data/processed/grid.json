@@ -1,0 +1,17 @@
+{
+  "source_product": "JEZ_hirise_soc_006_DTM_1m",
+  "version": "006",
+  "doi": "10.5066/P9REJ9JN",
+  "crs_wkt": "PROJCS[\"Equirectangular Mars 2000 Sphere IAU\",GEOGCS[\"D_Mars_2000_Sphere\",DATUM[\"Mars_2000_(Sphere)\",SPHEROID[\"Mars_2000_Sphere_IAU\",3396190,0],AUTHORITY[\"ESRI\",\"106971\"]],PRIMEM[\"Reference_Meridian\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Equirectangular\"],PARAMETER[\"standard_parallel_1\",0],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH]]",
+  "top_left_x_m": 4587600.0,
+  "top_left_y_m": 1096600.0,
+  "pixel_size_m": 1.0,
+  "width": 4000,
+  "height": 4000,
+  "top_left_coordinate": {
+    "latitude": 18.500305287409148,
+    "longitude": 77.39558684708938
+  },
+  "coordinate_notes": "Top-left corner reprojected from the native projected CRS to Mars geographic coordinates using the IAU oblate ellipsoid (Proj4: +proj=longlat +a=3396190 +b=3376200 +no_defs). Longitude and latitude are in degrees; positive east, positive north.",
+  "known_issue": "Native projection is equirectangular with standard parallel 0. At latitude about 18.5 deg one east-west pixel spans about 0.95 m on the ground while north-south spans 1 m, so the east-west gradient component of the slope is underestimated by about 5 percent."
+}

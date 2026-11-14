@@ -1,0 +1,12 @@
+{
+  "source_product_name": "SYNTHETIC SAMPLE - not real data",
+  "version": "1.0",
+  "pixel_size_m": 5.0,
+  "width": 100,
+  "height": 100,
+  "top_left_coordinate": {
+    "latitude": -4.5,
+    "longitude": 137.5
+  },
+  "coordinate_notes": "Synthetic sample data - coordinates are arbitrary for testing purposes"
+}
