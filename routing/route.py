@@ -250,3 +250,80 @@ def pixel_to_coord(row: int, col: int, g: Grid) -> tuple[float, float]:
     easting = g.easting_m + (col + 0.5) * g.pixel_size_m
     northing = g.northing_m - (row + 0.5) * g.pixel_size_m
     return easting, northing
+
+
+@dataclass(frozen=True)
+class EndpointSpec:
+    """One endpoint as given by the user: form 'pixel' is (row, col), 'coord' is (easting, northing)."""
+
+    form: str  # "pixel" or "coord"
+    a: float  # row or easting_m
+    b: float  # col or northing_m
+
+
+def resolve_endpoint(label: str, spec: EndpointSpec, g: Grid) -> tuple[int, int]:
+    """Return (row, col) for an endpoint. Raises RoutingError (2 invalid value, 1 outside grid)."""
+    if spec.form not in ("pixel", "coord"):
+        raise RoutingError(f"{label} endpoint: unknown form {spec.form!r}", 2)
+    for v in (spec.a, spec.b):
+        if isinstance(v, bool) or not isinstance(v, (int, float, np.integer, np.floating)):
+            raise RoutingError(f"{label} endpoint: value must be a number (rejected value: {v!r})", 2)
+        if not math.isfinite(v):
+            raise RoutingError(f"{label} endpoint: value must be finite (rejected value: {v!r})", 2)
+
+    if spec.form == "pixel":
+        if spec.a != int(spec.a) or spec.b != int(spec.b):
+            raise RoutingError(
+                f"{label} endpoint: pixel row and column must be integers "
+                f"(rejected value: ({spec.a!r}, {spec.b!r}))",
+                2,
+            )
+        row, col = int(spec.a), int(spec.b)
+    else:
+        row, col = coord_to_pixel(float(spec.a), float(spec.b), g)
+
+    if not (0 <= row < g.height and 0 <= col < g.width):
+        raise RoutingError(
+            f"{label} endpoint is outside the grid: pixel (row {row}, col {col}) "
+            f"is not within {g.height} rows x {g.width} columns",
+            1,
+        )
+    return row, col
+
+
+def find_path(
+    cost: np.ndarray,
+    start: tuple[int, int],
+    end: tuple[int, int],
+    connectivity: int,
+) -> tuple[list[tuple[int, int]], float]:
+    """Least-cost path as ([(row, col), ...], total cost). Raises RoutingError (exit 1)."""
+    blocked = [
+        name for name, (r, c) in (("start", start), ("end", end)) if not np.isfinite(cost[r, c])
+    ]
+    if blocked:
+        which = " and ".join(blocked)
+        raise RoutingError(f"{which} endpoint is on a blocked cell", 1)
+    if tuple(start) == tuple(end):
+        return [(int(start[0]), int(start[1]))], 0.0
+
+    from skimage.graph import route_through_array
+
+    try:
+        path, total = route_through_array(
+            cost, tuple(start), tuple(end), fully_connected=(connectivity == 8), geometric=True
+        )
+    except ValueError:
+        raise RoutingError("no path exists between start and end", 1) from None
+    if not math.isfinite(total):
+        raise RoutingError("no path exists between start and end", 1)
+    return [(int(r), int(c)) for r, c in path], float(total)
+
+
+def path_cost(cost: np.ndarray, path: list[tuple[int, int]]) -> float:
+    """Sum of 0.5 * (c_i + c_j) * step_length over consecutive path cells."""
+    total = 0.0
+    for (r0, c0), (r1, c1) in zip(path, path[1:]):
+        step = math.sqrt(2.0) if (r0 != r1 and c0 != c1) else 1.0
+        total += 0.5 * (float(cost[r0, c0]) + float(cost[r1, c1])) * step
+    return total

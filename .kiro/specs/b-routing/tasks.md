@@ -98,8 +98,8 @@ Steps build on each other: dependencies and config, config loading, generator, i
     - **Property 4: Coordinate conversion is consistent with the pixel grid**
     - **Validates: Requirements 4.2, 6.3**
 
-- [ ] 6. Implement endpoint resolution and path search
-  - [ ] 6.1 Add `resolve_endpoint`, `find_path`, and `path_cost` to `routing/route.py`
+- [x] 6. Implement endpoint resolution and path search
+  - [x] 6.1 Add `resolve_endpoint`, `find_path`, and `path_cost` to `routing/route.py`
     - `resolve_endpoint`: accept pixel or coordinate form, reject non-finite values (exit 2, names endpoint and value), reject cells outside the grid (exit 1, names start or end)
     - `find_path`: check blocked endpoints first (message names start, end, or both); call `route_through_array(cost, start, end, fully_connected=(connectivity == 8), geometric=True)`; a `ValueError` or infinite cost becomes "no path exists" (exit 1)
     - `path_cost`: sum of `0.5 * (c_i + c_j) * step_length`
