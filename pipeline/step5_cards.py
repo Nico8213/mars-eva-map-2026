@@ -73,7 +73,7 @@ card = {
     "license": "Access constraints: None. Use constraints: Please cite authors. No license text found (USGS product page, checked 2026-11-14)",
     "known_issues": [grid["known_issue"], sources_issue],
     "confidence_layer": None,
-    "decision_affected": None,
+    "decision_affected": "Slope blocks cells steeper than 20° and sets the traversal cost of every other cell, so it determines the route path.",
     "verification_status": "candidate",
     "source_url": f"https://doi.org/{grid['doi']}",
 }
@@ -90,7 +90,7 @@ ctx_card = {
         "Per USGS: individual CTX images have an average horizontal displacement of 9.6 m; a small gap in the northwest corner of the full mosaic was filled with an image orthorectified to HRSC DTM"
     ],
     "confidence_layer": None,
-    "decision_affected": None,
+    "decision_affected": "Not used in route cost; visual context only.",
     "verification_status": "candidate",
     "source_url": "https://doi.org/10.5066/P9GV1ND3",
 }

@@ -24,5 +24,5 @@
 
 - License: Access constraints: None. Use constraints: Please cite authors. No license text found (USGS product page, checked 2026-11-14)
 
-- Known issues: stereo DTM artifacts and seams; at latitude 18.5 deg one east-west pixel spans about 0.95 m on the ground
+- Known issues: stereo DTM artifacts and seams. Slope was computed with numpy gradient using 1 m spacing in both directions (taken from the raster transform). In this equirectangular projection (standard parallel 0) one east-west pixel is about 0.95 m on the ground at latitude 18.5 deg, so the east-west gradient component, and therefore the slope, is underestimated by up to about 5 percent. Not corrected, to keep the inputs of the routing validation fixed; Austin reports this as a limitation.
 
