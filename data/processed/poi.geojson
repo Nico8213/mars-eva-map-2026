@@ -1,0 +1,73 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.43608473405128,
+          18.482886387893146
+        ]
+      },
+      "properties": {
+        "id": "poi-001",
+        "name": "Cliff A",
+        "type": "cliff edge",
+        "source": "optical",
+        "evidence": "Selected by eye from hillshade.png; not a CRISM detection"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.40699981127588,
+          18.465138511582406
+        ]
+      },
+      "properties": {
+        "id": "poi-002",
+        "name": "Plateau B",
+        "type": "plateau",
+        "source": "optical",
+        "evidence": "Selected by eye from hillshade.png; not a CRISM detection"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.43540990985694,
+          18.462844109321704
+        ]
+      },
+      "properties": {
+        "id": "poi-003",
+        "name": "Crater C",
+        "type": "crater",
+        "source": "optical",
+        "evidence": "Selected by eye from hillshade.png; not a CRISM detection"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.40565016288724,
+          18.439292744939774
+        ]
+      },
+      "properties": {
+        "id": "poi-004",
+        "name": "Cone D",
+        "type": "cone",
+        "source": "optical",
+        "evidence": "Selected by eye from hillshade.png; not a CRISM detection"
+      }
+    }
+  ]
+}
