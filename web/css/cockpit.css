@@ -85,6 +85,8 @@ body {
   margin: 0.25rem 0 0.75rem;
 }
 
+.layer-row { margin-bottom: 0.25rem; }
+
 .poi-list {
   margin: 0;
   padding: 0;

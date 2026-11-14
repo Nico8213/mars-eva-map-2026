@@ -19,10 +19,10 @@
   - [x] 3.3 Fit the view to the union of all layer extents
   - _Requirements: R1, R2_
 
-- [ ] 4. Layers with toggle and opacity (R3)
-  - [ ] 4.1 `js/layers.js`: create one `imageOverlay` per `layers.json` entry in a fixed pane order
-  - [ ] 4.2 Build the checkbox and opacity slider row for each layer with labels
-  - [ ] 4.3 Default visible at opacity 0.7, show an error on image load failure
+- [x] 4. Layers with toggle and opacity (R3)
+  - [x] 4.1 `js/layers.js`: create one `imageOverlay` per `layers.json` entry in a fixed pane order
+  - [x] 4.2 Build the checkbox and opacity slider row for each layer with labels
+  - [x] 4.3 Default visible at opacity 0.7, show an error on image load failure
   - _Requirements: R3, R7_
 
 - [ ] 5. POI click (R4)
