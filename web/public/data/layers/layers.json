@@ -1,0 +1,35 @@
+[
+  {
+    "name": "Terrain (placeholder)",
+    "file": "terrain.png",
+    "extent": {
+      "min_easting_m": 0,
+      "min_northing_m": 0,
+      "max_easting_m": 1000,
+      "max_northing_m": 1000
+    },
+    "data_card_id": "card-terrain-dummy"
+  },
+  {
+    "name": "Optical (placeholder)",
+    "file": "optical.png",
+    "extent": {
+      "min_easting_m": 0,
+      "min_northing_m": 0,
+      "max_easting_m": 1000,
+      "max_northing_m": 1000
+    },
+    "data_card_id": "card-optical-dummy"
+  },
+  {
+    "name": "Spectral (placeholder)",
+    "file": "spectral.png",
+    "extent": {
+      "min_easting_m": 0,
+      "min_northing_m": 0,
+      "max_easting_m": 1000,
+      "max_northing_m": 1000
+    },
+    "data_card_id": "card-spectral-dummy"
+  }
+]
