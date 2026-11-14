@@ -1,0 +1,11 @@
+{
+  "source_dtm": "../local_only/hirise_raw/JEZ_hirise_soc_006_DTM_1m.tif",
+  "area": {
+  "west":  4587600.0,
+  "east":  4591600.0,
+  "south": 1092600.0,
+  "north": 1096600.0
+},
+  "cropped_dtm": "data/raw/cropped_dtm.tif",
+  "slope_colormap_max_deg": 45
+}

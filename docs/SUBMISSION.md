@@ -10,7 +10,7 @@ Mars Trek and the USGS-NASA planetary mapping programs work well for regional an
 We will build one cockpit planning display for the Jezero area; the tablet and helmet HUD will appear only as concept pages. It will offer at least three layers (terrain, optical imagery and spectral data) that can be switched on and off and adjusted for transparency. Points of interest from CRISM and optical imagery will mark candidate science sites, and a route planner will connect them while avoiding slopes above a documented threshold. Clicking any layer will open a data card with its source, version, resolution, license, known issues and the decision it affects, and a comparison view will show how each dataset changes the route.
 
 ## How we use NASA data
-- HiRISE DTM v003, 1 m/px, Jezero area (terrain; slope is derived from this). Status: candidate. Link: TBD
+- HiRISE DTM 006, 1 m/px, Jezero area (terrain; slope is derived from this). Status: candidate. Link: TBD
 - CTX orthorectified mosaic, 5 m/px (optical). Status: candidate. Link: TBD
 - HiRISE orthorectified image, 0.25 m/px (optical). Status: candidate. Link: TBD
 - CRISM hydrous mineral detections, accessed through JMARS (spectral; key input for POIs). Product page, version, resolution and license: TBD

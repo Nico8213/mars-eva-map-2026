@@ -1,3 +1,56 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Martian Map</title></head>
-<body style="font-family:sans-serif;padding:2rem"><h1>Martian Map</h1><p>Mars EVA map prototype. Coming soon.</p></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Martian Map</title>
+  <!-- Leaflet is served from vendor/ only (no CDN). All URLs are relative. -->
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="css/cockpit.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>Martian Map</h1>
+    <p class="notice" id="placeholder-notice">
+      Placeholder data: all layers, points and routes shown here are dummy files, not real observations.
+    </p>
+  </header>
+
+  <div class="layout">
+    <aside class="panel" aria-label="Map controls">
+      <fieldset id="layer-controls">
+        <legend>Layers</legend>
+        <!-- Rows are added by js/layers.js (task 4). -->
+      </fieldset>
+
+      <fieldset id="overlay-controls">
+        <legend>Overlays</legend>
+        <!-- Group toggles for points of interest and routes (tasks 5 and 6). -->
+      </fieldset>
+
+      <section id="poi-list-section" aria-labelledby="poi-list-title">
+        <h2 id="poi-list-title">Points of interest</h2>
+        <ul id="poi-list" class="poi-list">
+          <!-- Buttons are added by js/poi.js (task 5). -->
+        </ul>
+      </section>
+
+      <section aria-labelledby="status-title">
+        <h2 id="status-title">Status</h2>
+        <div id="status" class="status" role="status" aria-live="polite"></div>
+      </section>
+    </aside>
+
+    <main id="map" role="application" aria-label="Map of the study area"></main>
+  </div>
+
+  <noscript>This map needs JavaScript.</noscript>
+
+  <script src="vendor/leaflet/leaflet.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/layers.js"></script>
+  <script src="js/poi.js"></script>
+  <script src="js/routes.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
