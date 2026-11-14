@@ -1,0 +1,5 @@
+id,name,type,pixel_x,pixel_y,source,evidence
+poi-001,Cliff A,cliff edge,2400,1032,optical,Selected by eye from hillshade.png; not a CRISM detection
+poi-002,Plateau B,plateau,676,2084,optical,Selected by eye from hillshade.png; not a CRISM detection
+poi-003,Crater C,crater,2360,2220,optical,Selected by eye from hillshade.png; not a CRISM detection
+poi-004,Cone D,cone,596,3616,optical,Selected by eye from hillshade.png; not a CRISM detection
