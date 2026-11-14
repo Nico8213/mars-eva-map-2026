@@ -7,10 +7,10 @@
   - [x] 1.4 `routes/route_ea-01.geojson` and `routes/index.json`
   - _Requirements: R6_
 
-- [ ] 2. Page shell and styles (R1, R7)
-  - [ ] 2.1 Replace `web/index.html` with the header, side panel, map container and status region
-  - [ ] 2.2 Load `vendor/leaflet/leaflet.css` and `leaflet.js` with relative paths, no CDN
-  - [ ] 2.3 Add `css/cockpit.css` for layout, focus outlines and the placeholder-data notice
+- [x] 2. Page shell and styles (R1, R7)
+  - [x] 2.1 Replace `web/index.html` with the header, side panel, map container and status region
+  - [x] 2.2 Load `vendor/leaflet/leaflet.css` and `leaflet.js` with relative paths, no CDN
+  - [x] 2.3 Add `css/cockpit.css` for layout, focus outlines and the placeholder-data notice
   - _Requirements: R1, R7_
 
 - [ ] 3. Data helpers and map setup (R1, R2)
