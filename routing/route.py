@@ -227,3 +227,26 @@ def load_slope(path: Path, grid: Grid) -> np.ndarray:
     if arr.shape != expected:
         raise fail(f"slope array shape {arr.shape} does not match grid (height, width) {expected}")
     return arr
+
+
+def build_cost_raster(slope: np.ndarray, p: CostParams) -> np.ndarray:
+    """Per-pixel traversal cost (float64). NaN and slopes above the limit are np.inf."""
+    s = np.abs(np.asarray(slope, dtype=np.float64))
+    cost = np.full(s.shape, np.inf, dtype=np.float64)
+    ok = s <= p.slope_limit_deg  # False for NaN
+    cost[ok] = p.cost_base + p.cost_coefficient * (s[ok] / p.slope_limit_deg) ** p.cost_exponent
+    return cost
+
+
+def coord_to_pixel(easting_m: float, northing_m: float, g: Grid) -> tuple[int, int]:
+    """Map a map coordinate to (row, col). The result may lie outside the grid."""
+    col = math.floor((easting_m - g.easting_m) / g.pixel_size_m)
+    row = math.floor((g.northing_m - northing_m) / g.pixel_size_m)
+    return int(row), int(col)
+
+
+def pixel_to_coord(row: int, col: int, g: Grid) -> tuple[float, float]:
+    """Return (easting_m, northing_m) of the pixel centre."""
+    easting = g.easting_m + (col + 0.5) * g.pixel_size_m
+    northing = g.northing_m - (row + 0.5) * g.pixel_size_m
+    return easting, northing

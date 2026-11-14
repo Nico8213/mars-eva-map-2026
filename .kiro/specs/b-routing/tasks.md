@@ -84,8 +84,8 @@ Steps build on each other: dependencies and config, config loading, generator, i
     - Missing, unreadable, and malformed slope and grid files; a valid pair loads correctly
     - _Requirements: 2.3, 2.7_
 
-- [ ] 5. Implement cost raster and coordinate conversion
-  - [ ] 5.1 Add `build_cost_raster`, `coord_to_pixel`, and `pixel_to_coord` to `routing/route.py`
+- [x] 5. Implement cost raster and coordinate conversion
+  - [x] 5.1 Add `build_cost_raster`, `coord_to_pixel`, and `pixel_to_coord` to `routing/route.py`
     - Cost: float64, same shape; promote slope to float64; `abs_slope <= limit` is traversable with `base + coefficient * (abs_slope / limit) ** exponent`; NaN and values above the limit are `np.inf`
     - `coord_to_pixel` uses `floor` formulas from the design; `pixel_to_coord` returns the pixel centre
     - _Requirements: 1.8, 3.1, 3.2, 3.3, 3.4, 3.5, 3.7, 4.2, 6.3_
