@@ -1,35 +1,24 @@
 [
   {
-    "name": "Terrain (placeholder)",
-    "file": "terrain.png",
+    "name": "Slope",
+    "file": "layers/slope.png",
     "extent": {
-      "min_easting_m": 0,
-      "min_northing_m": 0,
-      "max_easting_m": 1000,
-      "max_northing_m": 1000
+      "west": 77.39558684708938,
+      "east": 77.46306926652183,
+      "south": 18.432822867976686,
+      "north": 18.500305287409148
     },
-    "data_card_id": "card-terrain-dummy"
+    "data_card_id": "hirise_dtm_006"
   },
   {
-    "name": "Optical (placeholder)",
-    "file": "optical.png",
+    "name": "Hillshade",
+    "file": "layers/hillshade.png",
     "extent": {
-      "min_easting_m": 0,
-      "min_northing_m": 0,
-      "max_easting_m": 1000,
-      "max_northing_m": 1000
+      "west": 77.39558684708938,
+      "east": 77.46306926652183,
+      "south": 18.432822867976686,
+      "north": 18.500305287409148
     },
-    "data_card_id": "card-optical-dummy"
-  },
-  {
-    "name": "Spectral (placeholder)",
-    "file": "spectral.png",
-    "extent": {
-      "min_easting_m": 0,
-      "min_northing_m": 0,
-      "max_easting_m": 1000,
-      "max_northing_m": 1000
-    },
-    "data_card_id": "card-spectral-dummy"
+    "data_card_id": "hirise_dtm_006"
   }
 ]

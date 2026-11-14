@@ -8,11 +8,17 @@
   // CRS name is not decided yet (INTERFACES.md, PRD 12.6). Do not invent one.
   Cockpit.crsLabel = 'TBD';
 
-  // Plain image map in metre coordinates. No tile layer or base map is added.
+  // Unit of the map coordinates: 'm' (projected metres) or 'deg' (geographic degrees).
+  // It is set from the layer extents once layers.json has loaded.
+  Cockpit.coordUnit = 'm';
+
+  // Plain image map. No tile layer or base map is added.
+  // The zoom range is wide on purpose: an extent of 0.07 degrees needs zoom 13 or
+  // more to fill the screen. It is narrowed after the view is fitted (fitToLayers).
   var map = L.map('map', {
     crs: L.CRS.Simple,
-    minZoom: -6,
-    maxZoom: 4,
+    minZoom: -10,
+    maxZoom: 20,
     zoomSnap: 0.25,
     zoomDelta: 0.5,
     attributionControl: false
@@ -24,22 +30,23 @@
   map.createPane('routes').style.zIndex = 450;
   map.createPane('poi').style.zIndex = 460;
 
-  // One map unit is one metre, so the scale control shows metres and km.
-  L.control.scale({ metric: true, imperial: false, position: 'bottomright' }).addTo(map);
-
-  // Readout of pointer position in metres and the CRS label.
+  // Readout of pointer position and the CRS label. Metres: E/N. Degrees: lon/lat.
   var ReadoutControl = L.Control.extend({
     options: { position: 'bottomleft' },
     onAdd: function () {
       var div = L.DomUtil.create('div', 'coord-readout');
-      div.textContent = 'E: - m, N: - m | CRS: ' + Cockpit.crsLabel;
+      div.textContent = 'Move the pointer over the map | CRS: ' + Cockpit.crsLabel;
       this._div = div;
       return div;
     },
     update: function (latlng) {
-      this._div.textContent =
-        'E: ' + latlng.lng.toFixed(1) + ' m, N: ' + latlng.lat.toFixed(1) +
-        ' m | CRS: ' + Cockpit.crsLabel;
+      var text;
+      if (Cockpit.coordUnit === 'deg') {
+        text = 'Lon: ' + latlng.lng.toFixed(5) + ' deg, Lat: ' + latlng.lat.toFixed(5) + ' deg';
+      } else {
+        text = 'E: ' + latlng.lng.toFixed(1) + ' m, N: ' + latlng.lat.toFixed(1) + ' m';
+      }
+      this._div.textContent = text + ' | CRS: ' + Cockpit.crsLabel;
     }
   });
   var readout = new ReadoutControl().addTo(map);
@@ -54,13 +61,25 @@
   // Fit the view to the union of all layer extents.
   function fitToLayers(layerEntries) {
     var bounds = Cockpit.unionBounds(layerEntries);
+    if (layerEntries.length) {
+      Cockpit.coordUnit = Cockpit.extentUnit(layerEntries[0].extent);
+    }
     if (!bounds) {
       map.setView([0, 0], 0);
       return;
     }
     map.fitBounds(bounds);
-    // Allow zooming out only a little past the full view, so the map is not lost.
-    map.setMinZoom(map.getZoom() - 2);
+    // Allow zooming out a little past the full view and in a few levels, so the
+    // map is not lost and the image is not zoomed into blur forever.
+    var fitZoom = map.getZoom();
+    map.setMinZoom(fitZoom - 2);
+    map.setMaxZoom(fitZoom + 4);
+
+    // The scale control measures in map units, so it is only correct for metres.
+    // For degrees it would print wrong distances, so it is left out.
+    if (Cockpit.coordUnit === 'm') {
+      L.control.scale({ metric: true, imperial: false, position: 'bottomright' }).addTo(map);
+    }
   }
 
   // layers.json lives in layers/ next to the PNGs (see design.md).

@@ -33,12 +33,43 @@
     return L.latLng(coord[1], coord[0]);
   };
 
+  // Two extent formats are accepted:
+  //   projected metres (INTERFACES.md): min_easting_m, min_northing_m, max_easting_m, max_northing_m
+  //   geographic degrees (current output of A): west, east, south, north
+  // In both cases the first value of a point is x (easting or longitude) and
+  // the second is y (northing or latitude). Nothing is reprojected.
+  function extentValues(extent) {
+    var v = (extent && 'west' in extent)
+      ? { w: extent.west, s: extent.south, e: extent.east, n: extent.north, unit: 'deg' }
+      : {
+        w: extent && extent.min_easting_m, s: extent && extent.min_northing_m,
+        e: extent && extent.max_easting_m, n: extent && extent.max_northing_m, unit: 'm'
+      };
+    [v.w, v.s, v.e, v.n].forEach(function (value) {
+      if (typeof value !== 'number' || !isFinite(value)) {
+        throw new Error('Layer extent has an unknown format. Expected min_/max_ easting/northing in m, or west/east/south/north in degrees.');
+      }
+    });
+    return v;
+  }
+
   // layers.json extent -> Leaflet bounds [[south, west], [north, east]].
   Cockpit.extentToBounds = function (extent) {
-    return [
-      [extent.min_northing_m, extent.min_easting_m],
-      [extent.max_northing_m, extent.max_easting_m]
-    ];
+    var v = extentValues(extent);
+    return [[v.s, v.w], [v.n, v.e]];
+  };
+
+  // Unit of the map coordinates for one extent: 'm' (metres) or 'deg' (degrees).
+  Cockpit.extentUnit = function (extent) {
+    return extentValues(extent).unit;
+  };
+
+  // Image URL for a layer file. INTERFACES.md says "relative to layers/", but the
+  // current output of A writes "layers/<name>.png" (relative to the data folder).
+  // Both forms are accepted.
+  Cockpit.layerUrl = function (file) {
+    var prefix = file.indexOf('layers/') === 0 ? '' : 'layers/';
+    return Cockpit.DATA_ROOT + prefix + file;
   };
 
   // Smallest bounds that contain every layer extent, or null for an empty list.

@@ -64,7 +64,7 @@
       map.createPane(paneName).style.zIndex = 200 + index;
 
       var overlay = L.imageOverlay(
-        Cockpit.DATA_ROOT + 'layers/' + entry.file,
+        Cockpit.layerUrl(entry.file),
         Cockpit.extentToBounds(entry.extent),
         { opacity: DEFAULT_OPACITY, alt: entry.name, interactive: false, pane: paneName }
       );
