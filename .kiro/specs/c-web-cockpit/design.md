@@ -174,3 +174,17 @@ No automated test framework is added (not requested). Manual checks:
 | R5 | Route layer |
 | R6 | Data files, conformance |
 | R7 | Page structure and accessibility |
+
+## Update 2026-11-13: real layers.json from A
+
+The first real `layers.json` differs from `INTERFACES.md`, so the cockpit accepts both forms:
+
+| Item | INTERFACES.md | Real file from A | Cockpit |
+|---|---|---|---|
+| `extent` keys | `min_easting_m`, `min_northing_m`, `max_easting_m`, `max_northing_m` | `west`, `east`, `south`, `north` (degrees, lon/lat) | Both accepted (`Cockpit.extentToBounds`) |
+| `file` | relative to `layers/` | `layers/slope.png` (relative to the data folder) | Both accepted (`Cockpit.layerUrl`) |
+
+- With degree extents the map unit is degrees. The readout shows Lon/Lat, and the scale control is left out because it measures in map units and would print wrong distances.
+- The zoom range is set wide at start and narrowed to fit zoom -2 / +4 after the layers load.
+- No reprojection is done. The dummy POI and route are in metres (0 to 1000) and do not line up with the degree extent until A and B deliver real files in the same unit as the layers.
+- Ask A to confirm the unit (degrees or metres) and to align `layers.json` with `INTERFACES.md`.
