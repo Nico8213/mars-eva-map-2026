@@ -1,0 +1,12 @@
+{
+  "crs": "SYNTHETIC (no real projection)",
+  "height": 64,
+  "nodata_value": null,
+  "pixel_size_m": 1.0,
+  "synthetic": true,
+  "top_left": {
+    "easting_m": 0.0,
+    "northing_m": 64.0
+  },
+  "width": 64
+}

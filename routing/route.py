@@ -1,0 +1,509 @@
+"""Least-cost route tool (role B). Core types and config loading."""
+
+from __future__ import annotations
+
+import argparse
+import datetime
+import json
+import math
+import os
+import re
+import subprocess
+import sys
+import tempfile
+from dataclasses import dataclass
+from pathlib import Path
+
+import numpy as np
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+OUT_DIR = REPO_ROOT / "routing" / "out"
+MAX_BYTES = 52_428_800
+
+_DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
+_REQUIRED_KEYS = (
+    "cost_function",
+    "slope_limit_deg",
+    "cost_base",
+    "cost_coefficient",
+    "cost_exponent",
+    "connectivity",
+)
+_NUMERIC_KEYS = ("slope_limit_deg", "cost_base", "cost_coefficient", "cost_exponent")
+
+
+class RoutingError(Exception):
+    """Error with a message and a process exit code (1 unreachable, 2 invalid input)."""
+
+    def __init__(self, message: str, exit_code: int = 2) -> None:
+        super().__init__(message)
+        self.message = message
+        self.exit_code = exit_code
+
+    def __str__(self) -> str:
+        return self.message
+
+
+@dataclass(frozen=True)
+class CostParams:
+    slope_limit_deg: float
+    cost_base: float
+    cost_coefficient: float
+    cost_exponent: float
+    connectivity: int  # 4 or 8
+
+
+@dataclass(frozen=True)
+class Grid:
+    pixel_size_m: float
+    width: int
+    height: int
+    easting_m: float  # top_left.easting_m
+    northing_m: float  # top_left.northing_m
+    crs: str
+
+
+def _has_valid_date(basis: str) -> bool:
+    for m in _DATE_RE.finditer(basis):
+        try:
+            datetime.date.fromisoformat(m.group(0))
+            return True
+        except ValueError:
+            continue
+    return False
+
+
+def load_config(path: Path) -> tuple[CostParams, dict]:
+    """Return validated cost parameters and the raw config dict.
+
+    Raises RoutingError (exit code 2) naming the file, key and rejected value.
+    """
+    path = Path(path)
+
+    def fail(key: str | None, detail: str, value: object = None) -> RoutingError:
+        parts = [f"config file {path}"]
+        if key is not None:
+            parts.append(f"key '{key}'")
+        msg = ": ".join(parts) + f": {detail}"
+        if value is not None:
+            msg += f" (rejected value: {value!r})"
+        return RoutingError(msg, 2)
+
+    try:
+        text = path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        raise fail(None, "file not found") from None
+    except (OSError, UnicodeDecodeError) as exc:
+        raise fail(None, f"cannot read file ({exc})") from None
+    try:
+        raw = json.loads(text)
+    except ValueError as exc:
+        raise fail(None, f"malformed JSON ({exc})") from None
+    if not isinstance(raw, dict):
+        raise fail(None, "malformed config, top level must be an object", raw)
+
+    for key in _REQUIRED_KEYS:
+        if key not in raw:
+            raise fail(key, "required key is missing")
+        entry = raw[key]
+        if not isinstance(entry, dict):
+            raise fail(key, "entry must be an object with 'value' and 'basis'", entry)
+        value = entry.get("value")
+        if value is None or (isinstance(value, str) and not value.strip()):
+            raise fail(key, "'value' is missing or empty", value)
+        basis = entry.get("basis")
+        if not isinstance(basis, str) or not basis.strip():
+            raise fail(key, "'basis' is missing or empty", basis)
+        if not _has_valid_date(basis):
+            raise fail(key, "'basis' must contain a valid YYYY-MM-DD date", basis)
+
+    cf = raw["cost_function"]["value"]
+    if cf != "quadratic_slope":
+        raise fail("cost_function", "unsupported value, must be 'quadratic_slope'", cf)
+
+    nums: dict[str, float] = {}
+    for key in _NUMERIC_KEYS:
+        v = raw[key]["value"]
+        if isinstance(v, bool) or not isinstance(v, (int, float)):
+            raise fail(key, "value must be a number", v)
+        try:
+            fv = float(v)
+        except OverflowError:
+            raise fail(key, "value must be finite and greater than 0", v) from None
+        if not math.isfinite(fv) or fv <= 0:
+            raise fail(key, "value must be finite and greater than 0", v)
+        nums[key] = fv
+
+    conn = raw["connectivity"]["value"]
+    if isinstance(conn, bool) or not isinstance(conn, int) or conn not in (4, 8):
+        raise fail("connectivity", "value must be the integer 4 or 8", conn)
+
+    params = CostParams(
+        slope_limit_deg=nums["slope_limit_deg"],
+        cost_base=nums["cost_base"],
+        cost_coefficient=nums["cost_coefficient"],
+        cost_exponent=nums["cost_exponent"],
+        connectivity=conn,
+    )
+    return params, raw
+
+
+_GRID_FIELDS = ("pixel_size_m", "width", "height", "top_left", "crs")
+
+
+def _is_number(v: object) -> bool:
+    return not isinstance(v, bool) and isinstance(v, (int, float))
+
+
+def load_grid(path: Path) -> Grid:
+    """Read and validate grid.json. Raises RoutingError (exit code 2)."""
+    path = Path(path)
+
+    def fail(detail: str) -> RoutingError:
+        return RoutingError(f"grid file {path}: {detail}", 2)
+
+    try:
+        text = path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        raise fail("file not found") from None
+    except (OSError, UnicodeDecodeError) as exc:
+        raise fail(f"cannot read file ({exc})") from None
+    try:
+        raw = json.loads(text)
+    except ValueError as exc:
+        raise fail(f"malformed JSON ({exc})") from None
+    if not isinstance(raw, dict):
+        raise fail("top level must be a JSON object")
+
+    missing = [k for k in _GRID_FIELDS if k not in raw]
+    if missing:
+        raise fail("missing required field(s): " + ", ".join(missing))
+
+    px = raw["pixel_size_m"]
+    if not _is_number(px) or not math.isfinite(px) or px <= 0:
+        raise fail(f"field 'pixel_size_m' must be a number greater than 0 (rejected value: {px!r})")
+    for key in ("width", "height"):
+        v = raw[key]
+        if isinstance(v, bool) or not isinstance(v, int) or v <= 0:
+            raise fail(f"field '{key}' must be an integer greater than 0 (rejected value: {v!r})")
+
+    tl = raw["top_left"]
+    if not isinstance(tl, dict):
+        raise fail(f"field 'top_left' must be an object (rejected value: {tl!r})")
+    for key in ("easting_m", "northing_m"):
+        if key not in tl:
+            raise fail(f"missing required field(s): top_left.{key}")
+        v = tl[key]
+        if not _is_number(v) or not math.isfinite(v):
+            raise fail(f"field 'top_left.{key}' must be a finite number (rejected value: {v!r})")
+
+    crs = raw["crs"]
+    if not isinstance(crs, str) or not crs.strip():
+        raise fail(f"field 'crs' must be a non-empty string (rejected value: {crs!r})")
+
+    return Grid(
+        pixel_size_m=float(px),
+        width=raw["width"],
+        height=raw["height"],
+        easting_m=float(tl["easting_m"]),
+        northing_m=float(tl["northing_m"]),
+        crs=crs,
+    )
+
+
+def load_slope(path: Path, grid: Grid) -> np.ndarray:
+    """Read slope.npy and check it is 2D with shape (height, width)."""
+    path = Path(path)
+
+    def fail(detail: str) -> RoutingError:
+        return RoutingError(f"slope file {path}: {detail}", 2)
+
+    try:
+        arr = np.load(path, allow_pickle=False)
+    except FileNotFoundError:
+        raise fail("file not found") from None
+    except Exception as exc:  # invalid NumPy file, pickled object, unreadable
+        raise fail(f"not a valid NumPy array file ({exc})") from None
+    if not isinstance(arr, np.ndarray):
+        raise fail("not a single NumPy array")
+    if arr.ndim != 2:
+        raise fail(f"slope array must have 2 dimensions, found {arr.ndim}")
+    expected = (grid.height, grid.width)
+    if arr.shape != expected:
+        raise fail(f"slope array shape {arr.shape} does not match grid (height, width) {expected}")
+    return arr
+
+
+def build_cost_raster(slope: np.ndarray, p: CostParams) -> np.ndarray:
+    """Per-pixel traversal cost (float64). NaN and slopes above the limit are np.inf."""
+    s = np.abs(np.asarray(slope, dtype=np.float64))
+    cost = np.full(s.shape, np.inf, dtype=np.float64)
+    ok = s <= p.slope_limit_deg  # False for NaN
+    cost[ok] = p.cost_base + p.cost_coefficient * (s[ok] / p.slope_limit_deg) ** p.cost_exponent
+    return cost
+
+
+def coord_to_pixel(easting_m: float, northing_m: float, g: Grid) -> tuple[int, int]:
+    """Map a map coordinate to (row, col). The result may lie outside the grid."""
+    col = math.floor((easting_m - g.easting_m) / g.pixel_size_m)
+    row = math.floor((g.northing_m - northing_m) / g.pixel_size_m)
+    return int(row), int(col)
+
+
+def pixel_to_coord(row: int, col: int, g: Grid) -> tuple[float, float]:
+    """Return (easting_m, northing_m) of the pixel centre."""
+    easting = g.easting_m + (col + 0.5) * g.pixel_size_m
+    northing = g.northing_m - (row + 0.5) * g.pixel_size_m
+    return easting, northing
+
+
+@dataclass(frozen=True)
+class EndpointSpec:
+    """One endpoint as given by the user: form 'pixel' is (row, col), 'coord' is (easting, northing)."""
+
+    form: str  # "pixel" or "coord"
+    a: float  # row or easting_m
+    b: float  # col or northing_m
+
+
+def resolve_endpoint(label: str, spec: EndpointSpec, g: Grid) -> tuple[int, int]:
+    """Return (row, col) for an endpoint. Raises RoutingError (2 invalid value, 1 outside grid)."""
+    if spec.form not in ("pixel", "coord"):
+        raise RoutingError(f"{label} endpoint: unknown form {spec.form!r}", 2)
+    for v in (spec.a, spec.b):
+        if isinstance(v, bool) or not isinstance(v, (int, float, np.integer, np.floating)):
+            raise RoutingError(f"{label} endpoint: value must be a number (rejected value: {v!r})", 2)
+        if not math.isfinite(v):
+            raise RoutingError(f"{label} endpoint: value must be finite (rejected value: {v!r})", 2)
+
+    if spec.form == "pixel":
+        if spec.a != int(spec.a) or spec.b != int(spec.b):
+            raise RoutingError(
+                f"{label} endpoint: pixel row and column must be integers "
+                f"(rejected value: ({spec.a!r}, {spec.b!r}))",
+                2,
+            )
+        row, col = int(spec.a), int(spec.b)
+    else:
+        row, col = coord_to_pixel(float(spec.a), float(spec.b), g)
+
+    if not (0 <= row < g.height and 0 <= col < g.width):
+        raise RoutingError(
+            f"{label} endpoint is outside the grid: pixel (row {row}, col {col}) "
+            f"is not within {g.height} rows x {g.width} columns",
+            1,
+        )
+    return row, col
+
+
+def find_path(
+    cost: np.ndarray,
+    start: tuple[int, int],
+    end: tuple[int, int],
+    connectivity: int,
+) -> tuple[list[tuple[int, int]], float]:
+    """Least-cost path as ([(row, col), ...], total cost). Raises RoutingError (exit 1)."""
+    blocked = [
+        name for name, (r, c) in (("start", start), ("end", end)) if not np.isfinite(cost[r, c])
+    ]
+    if blocked:
+        which = " and ".join(blocked)
+        raise RoutingError(f"{which} endpoint is on a blocked cell", 1)
+    if tuple(start) == tuple(end):
+        return [(int(start[0]), int(start[1]))], 0.0
+
+    from skimage.graph import route_through_array
+
+    try:
+        path, total = route_through_array(
+            cost, tuple(start), tuple(end), fully_connected=(connectivity == 8), geometric=True
+        )
+    except ValueError:
+        raise RoutingError("no path exists between start and end", 1) from None
+    if not math.isfinite(total):
+        raise RoutingError("no path exists between start and end", 1)
+    return [(int(r), int(c)) for r, c in path], float(total)
+
+
+def path_cost(cost: np.ndarray, path: list[tuple[int, int]]) -> float:
+    """Sum of 0.5 * (c_i + c_j) * step_length over consecutive path cells."""
+    total = 0.0
+    for (r0, c0), (r1, c1) in zip(path, path[1:]):
+        step = math.sqrt(2.0) if (r0 != r1 and c0 != c1) else 1.0
+        total += 0.5 * (float(cost[r0, c0]) + float(cost[r1, c1])) * step
+    return total
+
+
+_NAME_RE = re.compile(r"[A-Za-z0-9_-]{1,64}")
+_COST_FUNCTION_MAX = 500
+
+
+def validate_name(name: str) -> None:
+    """Accept only names matching ^[A-Za-z0-9_-]{1,64}$. Raises RoutingError (exit code 2)."""
+    if not isinstance(name, str) or _NAME_RE.fullmatch(name) is None:
+        raise RoutingError(
+            f"invalid route name {name!r}: name must match ^[A-Za-z0-9_-]{{1,64}}$ "
+            "(1 to 64 characters: letters, digits, underscore, hyphen)",
+            2,
+        )
+
+
+def get_commit_hash() -> str:
+    """Return the output of `git rev-parse HEAD`, or "unknown" on any failure."""
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=True,
+        )
+        commit = result.stdout.strip()
+        return commit if commit else "unknown"
+    except Exception:
+        return "unknown"
+
+
+def _cost_function_text(raw_config: dict, p: CostParams) -> str:
+    def val(key: str) -> object:
+        return raw_config[key]["value"]
+
+    params = (
+        f"cost_base={val('cost_base')}, cost_coefficient={val('cost_coefficient')}, "
+        f"cost_exponent={val('cost_exponent')}, slope_limit_deg={val('slope_limit_deg')}, "
+        f"connectivity={val('connectivity')}, geometric=true"
+    )
+    text = (
+        f"{val('cost_function')}: cost = cost_base + cost_coefficient * "
+        f"(slope / slope_limit_deg) ^ cost_exponent; {params}"
+    )
+    if len(text) > _COST_FUNCTION_MAX:
+        text = f"{val('cost_function')}: {params}"
+    return text[:_COST_FUNCTION_MAX]
+
+
+def build_feature(
+    name: str,
+    path: list[tuple[int, int]],
+    slope: np.ndarray,
+    g: Grid,
+    p: CostParams,
+    raw_config: dict,
+    start_poi: str | None,
+    end_poi: str | None,
+    commit: str,
+) -> dict:
+    """Build the GeoJSON Feature for a route. Contains no validation metric."""
+    coords = [list(pixel_to_coord(r, c, g)) for r, c in path]
+    length = 0.0
+    for (e0, n0), (e1, n1) in zip(coords, coords[1:]):
+        length += math.hypot(e1 - e0, n1 - n0)
+    max_slope = max(float(slope[r, c]) for r, c in path)
+    config_min = json.dumps(raw_config, separators=(",", ":"), ensure_ascii=False)
+    return {
+        "type": "Feature",
+        "geometry": {"type": "LineString", "coordinates": coords},
+        "properties": {
+            "name": name,
+            "start_poi": start_poi,
+            "end_poi": end_poi,
+            "length_m": round(length, 2),
+            "max_slope_deg": round(max_slope, 2),
+            "slope_threshold_deg": raw_config["slope_limit_deg"]["value"],
+            "data_used": ["slope"],
+            "cost_function": _cost_function_text(raw_config, p),
+            "generated_from": f"commit={commit}; config={config_min}",
+        },
+    }
+
+
+def write_route(feature: dict, name: str) -> Path:
+    """Write routing/out/route_<name>.geojson atomically. Raises RoutingError (exit code 2)."""
+    target = OUT_DIR / f"route_{name}.geojson"
+    tmp_name: str | None = None
+    try:
+        OUT_DIR.mkdir(parents=True, exist_ok=True)
+        data = json.dumps(feature, indent=2, ensure_ascii=False).encode("utf-8")
+        with tempfile.NamedTemporaryFile(
+            dir=OUT_DIR, prefix=f".route_{name}.", suffix=".tmp", delete=False
+        ) as fh:
+            tmp_name = fh.name
+            fh.write(data)
+        size = os.path.getsize(tmp_name)
+        if size >= MAX_BYTES:
+            raise RoutingError(
+                f"route file {target}: size {size} bytes reaches the limit of {MAX_BYTES} bytes",
+                2,
+            )
+        os.replace(tmp_name, target)
+        tmp_name = None
+    except RoutingError:
+        raise
+    except (OSError, ValueError) as exc:
+        raise RoutingError(f"cannot write route file {target}: {exc}", 2) from None
+    finally:
+        if tmp_name is not None:
+            try:
+                os.unlink(tmp_name)
+            except OSError:
+                pass
+    return target
+
+
+def _build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="route.py",
+        description="Least-cost route over a slope raster. Writes routing/out/route_<name>.geojson.",
+    )
+    parser.add_argument("--name", required=True, help="route name, ^[A-Za-z0-9_-]{1,64}$")
+    start = parser.add_mutually_exclusive_group(required=True)
+    start.add_argument("--start-rc", nargs=2, type=int, metavar=("ROW", "COL"))
+    start.add_argument("--start-en", nargs=2, type=float, metavar=("EASTING", "NORTHING"))
+    end = parser.add_mutually_exclusive_group(required=True)
+    end.add_argument("--end-rc", nargs=2, type=int, metavar=("ROW", "COL"))
+    end.add_argument("--end-en", nargs=2, type=float, metavar=("EASTING", "NORTHING"))
+    parser.add_argument("--start-poi", default=None, metavar="ID")
+    parser.add_argument("--end-poi", default=None, metavar="ID")
+    parser.add_argument("--slope", type=Path, default=REPO_ROOT / "data" / "processed" / "slope.npy")
+    parser.add_argument("--grid", type=Path, default=REPO_ROOT / "data" / "processed" / "grid.json")
+    parser.add_argument("--config", type=Path, default=REPO_ROOT / "routing" / "config.json")
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    """CLI entry. Returns the exit code; invalid arguments exit via argparse (code 2)."""
+    args = _build_parser().parse_args(argv)
+    try:
+        validate_name(args.name)
+        params, raw_config = load_config(args.config)
+        grid = load_grid(args.grid)
+        slope = load_slope(args.slope, grid)
+        start_spec = (
+            EndpointSpec("pixel", *args.start_rc)
+            if args.start_rc is not None
+            else EndpointSpec("coord", *args.start_en)
+        )
+        end_spec = (
+            EndpointSpec("pixel", *args.end_rc)
+            if args.end_rc is not None
+            else EndpointSpec("coord", *args.end_en)
+        )
+        start = resolve_endpoint("start", start_spec, grid)
+        end = resolve_endpoint("end", end_spec, grid)
+        cost = build_cost_raster(slope, params)
+        path, _ = find_path(cost, start, end, params.connectivity)
+        feature = build_feature(
+            args.name, path, slope, grid, params, raw_config,
+            args.start_poi, args.end_poi, get_commit_hash(),
+        )
+        target = write_route(feature, args.name)
+    except RoutingError as exc:
+        print(f"error: {exc.message}", file=sys.stderr)
+        return exc.exit_code
+    print(f"routing/out/route_{args.name}.geojson {os.path.getsize(target)}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

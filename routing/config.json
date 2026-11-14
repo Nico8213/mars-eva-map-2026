@@ -1,0 +1,26 @@
+{
+  "cost_function": {
+    "value": "quadratic_slope",
+    "basis": "Team choice, docs/research/nico-routing-spec.md, v1, 2026-11-14. This is a team choice. Cost = cost_base + cost_coefficient * (slope / slope_limit_deg) ^ cost_exponent. Transparent quadratic heuristic, not fitted to data. Qualitatively consistent with Minetti et al. 2002 (https://iris.unibs.it/handle/11379/540545), measured under Earth gravity. Results are a relative cost ranking only, not a prediction of real energy use."
+  },
+  "slope_limit_deg": {
+    "value": 20,
+    "basis": "Team choice, docs/research/nico-routing-spec.md, v1, 2026-11-14. This is a team choice. Referenced to a rover limit: Perseverance autonomous navigation on slopes above 20 degrees (JPL, https://robotics.jpl.nasa.gov/media/documents/2026_RO_AAS_final.pdf). This is not a human or spacesuit limit."
+  },
+  "cost_base": {
+    "value": 1.0,
+    "basis": "Team choice, docs/research/nico-routing-spec.md, v1, 2026-11-14. A flat cell costs 1."
+  },
+  "cost_coefficient": {
+    "value": 1.0,
+    "basis": "Team choice, docs/research/nico-routing-spec.md, v1, 2026-11-14. A cell at the limit costs 2."
+  },
+  "cost_exponent": {
+    "value": 2.0,
+    "basis": "Team choice, docs/research/nico-routing-spec.md, v1, 2026-11-14. Quadratic growth with slope."
+  },
+  "connectivity": {
+    "value": 8,
+    "basis": "Team choice, docs/research/nico-routing-spec.md, v1, 2026-11-14. 8-neighbour (skimage fully_connected=True)."
+  }
+}
