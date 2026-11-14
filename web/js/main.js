@@ -45,6 +45,12 @@
   var readout = new ReadoutControl().addTo(map);
   map.on('mousemove', function (e) { readout.update(e.latlng); });
 
+  // Tell the other scripts that the map exists and has a view
+  // (POI and route scripts listen for this; vector layers need a view first).
+  function announceMapReady() {
+    document.dispatchEvent(new CustomEvent('cockpit:map-ready'));
+  }
+
   // Fit the view to the union of all layer extents.
   function fitToLayers(layerEntries) {
     var bounds = Cockpit.unionBounds(layerEntries);
@@ -63,9 +69,11 @@
     fitToLayers(layerEntries);
     // Tasks 4 to 6 hook in here once their scripts exist.
     document.dispatchEvent(new CustomEvent('cockpit:layers-loaded', { detail: layerEntries }));
+    announceMapReady();
   }).catch(function (err) {
     Cockpit.layerEntries = [];
     fitToLayers([]);
     Cockpit.showError(err.message);
+    announceMapReady();
   });
 })();

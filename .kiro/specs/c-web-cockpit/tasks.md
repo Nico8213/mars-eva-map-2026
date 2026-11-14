@@ -25,10 +25,10 @@
   - [x] 4.3 Default visible at opacity 0.7, show an error on image load failure
   - _Requirements: R3, R7_
 
-- [ ] 5. POI click (R4)
-  - [ ] 5.1 `js/poi.js`: draw circle markers from `poi.geojson` using `coordsToLatLng`
-  - [ ] 5.2 Popup with name, type, source and evidence using `textContent` only
-  - [ ] 5.3 POI list buttons in the side panel for keyboard access, and a group toggle
+- [x] 5. POI click (R4)
+  - [x] 5.1 `js/poi.js`: draw circle markers from `poi.geojson` using `coordsToLatLng`
+  - [x] 5.2 Popup with name, type, source and evidence using `textContent` only
+  - [x] 5.3 POI list buttons in the side panel for keyboard access, and a group toggle
   - _Requirements: R4, R7_
 
 - [ ] 6. Route display (R5)
