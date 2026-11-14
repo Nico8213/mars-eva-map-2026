@@ -24,10 +24,27 @@
 | `--slope PATH` | 否 | 坡度数组，默认 `data/processed/slope.npy`。 |
 | `--grid PATH` | 否 | 栅格元数据，默认 `data/processed/grid.json`。 |
 | `--config PATH` | 否 | 代价参数，默认 `routing/config.json`。 |
+| `--exclude LAYER` | 否 | 见下节。 |
+| `--layers PATH` | 否 | 校验 `--exclude` 用的 `layers.json`，默认 `data/processed/layers/layers.json`。 |
 
 退出码：0 成功；1 路线不可达（端点在栅格外、端点在阻挡格上、两点之间无路径）；2 输入无效（参数、配置、grid、slope 文件有问题，或写文件失败）。错误信息写到 stderr。成功时 stdout 打印一行：`routing/out/route_<name>.geojson <字节数>`。
 
 `routing/config.json` 中每个参数都必须有 `value` 和含 `YYYY-MM-DD` 日期的 `basis`，否则以退出码 2 拒绝。当前代价函数为 `quadratic_slope`：`cost = cost_base + cost_coefficient * (slope / slope_limit_deg) ^ cost_exponent`。坡度超过 `slope_limit_deg` 或坡度缺失的格子代价为无穷（不可通行）。
+
+## `--exclude`（F10 对照路线）
+
+`--exclude LAYER` 从代价计算中去掉一个图层，输出 `routing/out/route_<name>_no_<LAYER>.geojson`。依据：`docs/research/nico-routing-spec.md` 第 5 节。
+
+- 可用的 LAYER 只有 `data/processed/layers/layers.json` 中的图层 id（名称小写）：`slope`、`hillshade`、`ctx`。其他值以退出码 2 拒绝。可用 `--layers PATH` 指定另一份 `layers.json`。
+- 只有 `routing/config.json` 的 `cost_inputs`（当前为 `["slope"]`）里的图层会改变路线。排除 `hillshade` 或 `ctx` 时路线与不排除相同，stderr 提示 "no effect on routing"。
+- 排除 `slope` 时，每个格子代价为 `cost_base`，没有阻挡格（坡度上限和缺失值规则都来自坡度）。`slope_threshold_deg` 仍写配置值，但未应用，`cost_function` 里有说明。
+- `name` 属性为 `<name>_no_<LAYER>`；`data_used` 为 `cost_inputs` 去掉被排除的图层；`max_slope_deg` 仍按 `slope.npy` 取值。
+
+示例：
+
+```powershell
+.\.venv\Scripts\python.exe routing/route.py --name ea-01 --start-rc 500 500 --end-rc 900 1200 --exclude slope
+```
 
 ## 输出文件
 
@@ -93,7 +110,6 @@
 ## 未完成
 
 - 毅力号（Perseverance）轨迹对照验证：要等快照文件。
-- F10 的 `--exclude` 开关：`route.py` 目前没有该参数。
 - `validation/params.json` 尚未锁定：其中的 `[TBD-DATA]` 还没填完。
 
 ## 已知局限

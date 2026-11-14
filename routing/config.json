@@ -19,6 +19,10 @@
     "value": 2.0,
     "basis": "Team choice, docs/research/nico-routing-spec.md, v1, 2026-11-14. Quadratic growth with slope."
   },
+  "cost_inputs": {
+    "value": ["slope"],
+    "basis": "Derived from the cost function above, docs/research/nico-routing-spec.md section 2 and section 5 (F10), v1, 2026-11-14. Layer ids that feed the cost. The quadratic_slope cost uses only the slope layer; hillshade and ctx are display layers with no effect on routing. Used only by route.py --exclude."
+  },
   "connectivity": {
     "value": 8,
     "basis": "Team choice, docs/research/nico-routing-spec.md, v1, 2026-11-14. 8-neighbour (skimage fully_connected=True)."
