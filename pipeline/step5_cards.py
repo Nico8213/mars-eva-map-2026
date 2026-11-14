@@ -70,7 +70,7 @@ card = {
     "product": f"{grid['source_product']}, version {grid['version']}",
     "acquisition_date": "2006-01-01 to 2019-10-24 (USGS 'Time Period of Content')",
     "resolution": f"{num_text(grid['pixel_size_m'])} m/px",
-    "license": "Access constraints: None. Use constraints: Please cite authors. No license text found (USGS product page, checked 2026-11-14)",
+        "license": "CC0 1.0 Universal (USGS data release page, checked 2026-11-14). The USGS product page also asks users to cite the authors.",
     "known_issues": [grid["known_issue"], sources_issue],
     "confidence_layer": None,
     "decision_affected": "Slope blocks cells steeper than 20° and sets the traversal cost of every other cell, so it determines the route path.",
@@ -85,7 +85,7 @@ ctx_card = {
     "product": "JEZ_ctx_B_soc_008_orthoMosaic_6m_Eqc_latTs0_lon0, version 008 (from file name)",
     "acquisition_date": "2006-01-01 to 2019-08-20 (USGS 'Time Period of Content')",
     "resolution": "6 m/px",
-    "license": "Access constraints: None. Use constraints: Please cite authors. No license text found (USGS product page, checked 2026-11-14)",
+    "license": "CC0 1.0 Universal (USGS data release page, checked 2026-11-14). The USGS product page also asks users to cite the authors.",
     "known_issues": [
         "Per USGS: individual CTX images have an average horizontal displacement of 9.6 m; a small gap in the northwest corner of the full mosaic was filled with an image orthorectified to HRSC DTM"
     ],
