@@ -48,13 +48,28 @@ Rules:
 New downloads are saved separately and never replace the 2026-10-11 snapshot (project plan §7.6).
 
 ### 4.3 Coordinate system and distance
-1. **All distances are computed in a projected metre CRS, never in degrees.** [DESIGN]
-2. The CRS is the one stored in the HiRISE DTM file (read with `rasterio`/`pyproj`), or in `grid.json` if it carries the same information. The planet radius and projection parameters are read from the same place. Do not hard-code them. **[TBD-DATA]** write the CRS string and radius found there.
-3. The rover path (latitude/longitude) is reprojected into that CRS. The `18.4663°` easting/northing formula is **not** used for validation. Project plan §8.2 and §12.6 list the standard-parallel mismatch as open. [SOURCE: project plan §8.2]
-4. **Consistency check (mandatory, runs before validation):** project the first waypoint with both methods and print the offset in metres. If the offset is larger than `d_tol / 2` = 5 m, stop and tell Nico. Do not "fix" the formula. [DESIGN]
-5. Distance = planimetric Euclidean distance in the projected plane. [DESIGN]
-6. The height reference (`elev_geoid`) does not matter for planimetric distance. If a 3D "surface length" is ever reported, label it separately and state how it was computed. [DESIGN]
-7. Route length shown on the webpage and length used in validation come from the same function. [DESIGN]
+**What the terrain file is.** [SOURCE: USGS label of the full-size file, https://astrogeology.usgs.gov/ckan/dataset/381ba037-d8a9-4cea-86be-374e4951afe3/resource/bd39aeaf-231d-4732-b333-7636bce607ff/download/jez_hirise_soc_006_dtm_molatopography_deltageoid_1m_eqc_latts0_lon0_blend40.lbl ; file and version as downloaded by Xin En on 2026-11-14]
+- File: `JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40.tif`, version 006 (taken from the file name), DOI 10.5066/P9REJ9JN.
+- Projection: equirectangular, centre longitude 0, centre latitude 0 (the file name says `latTs0`), planetocentric latitude, longitude positive east.
+- Planet: a sphere, equatorial radius = polar radius = 3396190 m.
+- Pixel size: 1 m in map units. Extent of the full file: latitude 18.3068 to 18.6693, longitude 77.2229 to 77.5840.
+- **[TBD-DATA]** Austin's script reads the CRS and radius from the cropped grid file actually used (with `rasterio`/`pyproj`) and confirms they equal the values above. If they differ, stop and tell Nico.
+
+**The problem with this projection.** With the true-scale latitude at 0, one map metre east-west is shorter on the ground than one map metre north-south, by a factor of cos(latitude), which is about 0.95 at Jezero. Distances measured in raw map metres would overstate east-west distances by about 5%. [DESIGN: decision below]
+
+**Decisions.** [DESIGN]
+1. Grid cell centres are converted to latitude/longitude by inverting the DTM projection with the sphere radius above.
+2. **All distances are computed in a local azimuthal equidistant projection on the same sphere** (`+proj=aeqd +R=3396190`), centred on the centre of the grid extent, in metres. Never in degrees, and not in raw DTM map metres.
+3. The rover path (latitude/longitude) is converted straight into the same local projection.
+4. The `18.4663°` easting/northing formula is **not** used. It differs from the DTM's own projection (true-scale latitude 0 per the file name), and mixing the two would shift positions. The meaning of `18.4663°` stays an open question and has no effect on validation.
+5. **Mandatory checks, run before validation:**
+   - the landing site of 4.4, converted into the DTM projection, falls inside the grid extent;
+   - for two points taken from the corners of the extent, the great-circle (haversine) distance on the sphere and the distance in the local projection differ by less than 1%. Print both numbers. If the difference is 1% or more, stop and tell Nico.
+6. Distance = planimetric Euclidean distance in the local projection. Point-to-line distance, if used, uses the closest point on the segment.
+7. Route length (shown on the web page and used in validation) is computed from route vertex coordinates in the local projection, with one shared function. It is not computed by counting cells.
+8. The height reference (`DeltaGeoid` in the file name) does not matter for planimetric distance. If a 3D "surface length" is ever reported, label it separately and state how it was computed.
+
+**Dependency on the data pipeline (ask Xin En).** Because of the cos(latitude) effect above, slope computed with a spacing of 1 m on both axes would understate the east-west gradient by about 5%. **[TBD-DATA]** Xin En states in `data/processed/sources.md` how east-west pixel spacing was handled when making `slope.npy`. If both axes were treated as 1 m, either the slope is recomputed with the ground spacing (north-south 1 m, east-west 1 m × cos(latitude)) or the limitation is written in the report and the data card. [DESIGN]
 
 ### 4.4 Landing site, first point, last point, and clipping the traverse
 Preparing the reference line:
@@ -63,7 +78,7 @@ Preparing the reference line:
 
 Definitions:
 - **Landing site** = the point with the smallest sol in `M20_waypoints.json`. It should be sol 0, the touchdown location, commonly called "Octavia E. Butler Landing". **[TBD-DATA]** the script prints sol, index and coordinates; copy them here. If the smallest sol is not 0, stop and ask Nico. [DESIGN]
-- **Extent** = the rectangular bounds of `grid.json`, in the CRS of 4.3. A traverse point is "inside" if it lies within those bounds. [DESIGN]
+- **Extent** = the rectangular bounds of `grid.json`, in the DTM projection of 4.3. A traverse point is "inside" if it lies within those bounds. [DESIGN]
 - **Validation reference** = the first uninterrupted run of the ordered traverse that is inside the extent, starting at the landing site. If the landing site is outside the extent, stop and ask Nico. [DESIGN]
   - Reason: a route needs one continuous reference. If the rover leaves the grid and comes back, the part outside has no terrain data, and the part after re-entry would not connect to the start.
 - **First path point** = the landing site.
@@ -77,7 +92,7 @@ If the validation reference lies mostly at sols above 1762, say so in the report
 **Resampling.** [DESIGN]
 1. Terrain: not resampled. The validation uses `slope.npy` and `grid.json` at their stored resolution.
 2. If the grid is ever coarsened, compute slope first at native resolution, then coarsen the **slope** (not the elevation) with the **maximum** per block. A coarse cell is then blocked if any fine cell in it is blocked, which is the cautious choice. Continuous layers use bilinear interpolation; masks and categories use nearest neighbour.
-3. Lines: our route and the validation reference are both converted to equally spaced points along their length, spacing = one grid pixel (from `grid.json`), by linear interpolation in the projected metre coordinates of 4.3. Never interpolate in degrees.
+3. Lines: our route and the validation reference are both converted to equally spaced points along their length, spacing = one grid pixel (from `grid.json`), by linear interpolation in the local metre coordinates of 4.3. Never interpolate in degrees.
 4. The method and spacing are written into `report.json`.
 
 **Metrics.**
@@ -146,7 +161,7 @@ Committed in `validation/params.json` before the first validation run and not ch
 - verdict thresholds on M1: 0.80 and 0.50
 - `r_snap` = 3 cells
 - traverse files: exact names, snapshot date, download date and SHA-256 (4.2), recorded in the report
-- CRS source and consistency-check limit (4.3)
+- terrain file and version, DTM projection, and the local distance projection with its 1% check (4.3)
 
 ### 4.9 Comparison segment and caveat
 - Comparison segment: the validation reference of 4.4 (the first uninterrupted run of the Perseverance traverse inside the extent of `grid.json`, starting at the landing site). Parts of the traverse outside the grid, and parts after re-entry, are not compared.
@@ -192,7 +207,14 @@ Austin may rename the keys. Every line must exist in some form. `null` values ar
     "remove_duplicate_segments": 1
   },
   "clip": { "extent": "grid.json bounds", "reference_run": "first uninterrupted run from landing site", "landing_site": "min sol in waypoints, expected sol 0" },
-  "crs": { "source": "HiRISE DTM file metadata", "crs_string": null, "radius_m": null, "consistency_check_max_offset_m": 5 },
+  "crs": {
+    "terrain_file": "JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40.tif",
+    "terrain_version": "006",
+    "dtm_projection": "equirectangular, lat_ts 0, lon_0 0, sphere (confirm on the cropped file)",
+    "radius_m": 3396190,
+    "distance_projection": "aeqd, same sphere, centred on grid extent centre",
+    "haversine_check_max_relative_difference": 0.01
+  },
   "resampling": { "terrain": "none", "coarsen_slope_by": "max", "line_spacing": "one grid pixel" },
   "cost": { "formula": "1 + (slope / limit)^2", "slope_limit_deg": 20, "blocked_value": "inf", "nan_is_blocked": true, "fully_connected": true, "geometric": true },
   "tolerance_m": { "primary": 10, "sensitivity": [5, 25] },
