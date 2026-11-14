@@ -27,7 +27,7 @@ Written by A, read by B and C.
 | Field | Type | Required | Description | Example |
 |---|---|---|---|---|
 | `source_product` | string | yes | Name of the source product | `"HiRISE DTM (Jezero crop)"` |
-| `source_version` | string | yes | Product version | `"v003"` |
+| `source_version` | string | yes | Product version | `"006"` |
 | `source_url` | string | yes | Download or landing page for the source | TBD |
 | `pixel_size_m` | number | yes | Pixel size in metres | `1.0` |
 | `width` | integer | yes | Number of columns; set after the crop area is fixed | TBD |
@@ -43,7 +43,7 @@ Example:
 ```json
 {
   "source_product": "HiRISE DTM (Jezero crop)",
-  "source_version": "v003",
+  "source_version": "006",
   "source_url": "TBD",
   "pixel_size_m": 1.0,
   "width": "TBD",
@@ -156,7 +156,7 @@ Written by A, read by C. An array with one data card per layer. Fields follow F8
 | `layer_name` | string | yes | Layer this card describes | `"Terrain (HiRISE DTM)"` |
 | `mission` | string | yes | Source mission | `"MRO"` |
 | `instrument` | string | yes | Source instrument | `"HiRISE"` |
-| `product` | string | yes | Product name and version | `"DTM v003"` |
+| `product` | string | yes | Product name and version | `"DTM 006"` |
 | `acquisition_date` | string | yes | Date or range of source data (ISO 8601) | TBD |
 | `resolution` | string | yes | Resolution with unit | `"1 m/px"` |
 | `license` | string | yes | License or usage terms | TBD (PRD §7.3, §12.7) |
@@ -175,7 +175,7 @@ Example:
     "layer_name": "Terrain (HiRISE DTM)",
     "mission": "MRO",
     "instrument": "HiRISE",
-    "product": "DTM v003",
+    "product": "DTM 006",
     "acquisition_date": "TBD",
     "resolution": "1 m/px",
     "license": "TBD",
