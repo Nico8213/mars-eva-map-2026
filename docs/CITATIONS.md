@@ -1,11 +1,11 @@
 # Citations
 | Name | Organization | Version | URL | Accessed | License | Used in |
 |---|---|---|---|---|---|---|
-| HiRISE DTM (Jezero crop) | TBD | v003, 1 m/px | TBD | TBD | TBD | Terrain layer (F1); slope raster for route cost (F3) |
+| HiRISE DTM (Jezero crop) | USGS Astrogeology Science Center | 006 (as downloaded; see data/processed/sources.md), 1 m/px | https://doi.org/10.5066/P9REJ9JN | 2026-11-14 (downloaded) | TBD | Terrain layer (F1); slope raster for route cost (F3) |
 | MOLA-HRSC blended DEM | TBD | TBD, 200 m/px | TBD | TBD | TBD | Regional background only; not used for slope (PRD §7.1) |
 | CTX orthorectified mosaic | TBD | TBD, 5 m/px | TBD | TBD | TBD | Optical layer (F1) |
 | HiRISE orthorectified image | TBD | TBD, 0.25 m/px | TBD | TBD | TBD | Optical layer (F1) |
-| CRISM hydrous mineral detections (accessed through JMARS); CRISM archive at PDS | NASA PDS Geosciences Node (archive, per vn-crism.md); JMARS (access, per PRD §7.3) | TBD | TBD | 2026-11-14 | TBD CONFLICT | POI source (F2) and route endpoint selection (F3) |
+| CRISM hydrous mineral detections (shown as a JMARS layer); CRISM data archived at the PDS | NASA PDS Geosciences Node (archive); JMARS (viewer) | TBD (the PDS lists MRDR v4 and MTRDR/TER Release 19; the product behind the JMARS layer is not confirmed). Resolution depends on the product: about 18 m/px (targeted) to 200 m/px (survey), from a secondary source (vn-crism.md) | https://pds-geosciences.wustl.edu/missions/mro/crism.htm | 2026-11-14 | No access or use limits stated (vn-crism.md, medium confidence); attribution to the data provider and PDS expected; to be confirmed against the Space Apps rules | POI source (F2) and route endpoint selection (F3) |
 | Perseverance traverse and waypoints (M20_traverse.json, M20_waypoints.json) | TBD (PRD §7.4 names PLACES Release 15 as the authoritative citation source) | Snapshot 2026-10-11, sol 1980 | TBD | TBD | TBD | Validation reference only (F7, PRD §9.1) |
 | MEDA Radiation and Dust Sensor (RDS) data | NASA PDS Atmospheres Node (Rodriguez-Manfredi et al., 2021) | DOI 10.17189/1522849 (MEDA bundle); data from 19 Feb 2021, ongoing | https://pds-atmospheres.nmsu.edu/data_and_services/atmospheres_data/PERSEVERANCE/meda.html | 2026-11-14 | TBD | Environment reference panel (F9); RDS uses UV photodiodes: it measures sunlight (UV), not radiation dose |
 | MEDA derived dataset (TIRS, PS, RHS) | NASA PDS Atmospheres Node | DOI 10.17189/1522849 (MEDA bundle); coverage sol 1–1859 per PRD §7.8, to verify | https://pds-atmospheres.nmsu.edu/data_and_services/atmospheres_data/PERSEVERANCE/meda.html | TBD | TBD | Atmospheric background, one sentence only (PRD §7.8) |
