@@ -173,6 +173,25 @@
         "chatSessionId": "sess_a63c9cda-1662-4425-8b1d-d7c1ac84bbbd",
         "timestamp": 1794640311757
       }
+    ],
+    "9.1 Add `main(argv)` and the `__main__` entry to `routing/route.py`": [
+      {
+        "executionId": "a0eaf414-be1c-46c0-98a5-d24316f28808",
+        "chatSessionId": "sess_c2d84b8b-6644-427f-8a22-6f5c3fe6aea4",
+        "timestamp": 1794640392629
+      },
+      {
+        "executionId": "a0eaf414-be1c-46c0-98a5-d24316f28808",
+        "chatSessionId": "sess_c2d84b8b-6644-427f-8a22-6f5c3fe6aea4",
+        "timestamp": 1794640521759
+      }
+    ],
+    "9. Wire the router command line": [
+      {
+        "executionId": "a0eaf414-be1c-46c0-98a5-d24316f28808",
+        "chatSessionId": "sess_c2d84b8b-6644-427f-8a22-6f5c3fe6aea4",
+        "timestamp": 1794640521976
+      }
     ]
   }
 }

@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import argparse
 import datetime
 import json
 import math
 import os
 import re
 import subprocess
+import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -447,3 +449,61 @@ def write_route(feature: dict, name: str) -> Path:
             except OSError:
                 pass
     return target
+
+
+def _build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="route.py",
+        description="Least-cost route over a slope raster. Writes routing/out/route_<name>.geojson.",
+    )
+    parser.add_argument("--name", required=True, help="route name, ^[A-Za-z0-9_-]{1,64}$")
+    start = parser.add_mutually_exclusive_group(required=True)
+    start.add_argument("--start-rc", nargs=2, type=int, metavar=("ROW", "COL"))
+    start.add_argument("--start-en", nargs=2, type=float, metavar=("EASTING", "NORTHING"))
+    end = parser.add_mutually_exclusive_group(required=True)
+    end.add_argument("--end-rc", nargs=2, type=int, metavar=("ROW", "COL"))
+    end.add_argument("--end-en", nargs=2, type=float, metavar=("EASTING", "NORTHING"))
+    parser.add_argument("--start-poi", default=None, metavar="ID")
+    parser.add_argument("--end-poi", default=None, metavar="ID")
+    parser.add_argument("--slope", type=Path, default=REPO_ROOT / "data" / "processed" / "slope.npy")
+    parser.add_argument("--grid", type=Path, default=REPO_ROOT / "data" / "processed" / "grid.json")
+    parser.add_argument("--config", type=Path, default=REPO_ROOT / "routing" / "config.json")
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    """CLI entry. Returns the exit code; invalid arguments exit via argparse (code 2)."""
+    args = _build_parser().parse_args(argv)
+    try:
+        validate_name(args.name)
+        params, raw_config = load_config(args.config)
+        grid = load_grid(args.grid)
+        slope = load_slope(args.slope, grid)
+        start_spec = (
+            EndpointSpec("pixel", *args.start_rc)
+            if args.start_rc is not None
+            else EndpointSpec("coord", *args.start_en)
+        )
+        end_spec = (
+            EndpointSpec("pixel", *args.end_rc)
+            if args.end_rc is not None
+            else EndpointSpec("coord", *args.end_en)
+        )
+        start = resolve_endpoint("start", start_spec, grid)
+        end = resolve_endpoint("end", end_spec, grid)
+        cost = build_cost_raster(slope, params)
+        path, _ = find_path(cost, start, end, params.connectivity)
+        feature = build_feature(
+            args.name, path, slope, grid, params, raw_config,
+            args.start_poi, args.end_poi, get_commit_hash(),
+        )
+        target = write_route(feature, args.name)
+    except RoutingError as exc:
+        print(f"error: {exc.message}", file=sys.stderr)
+        return exc.exit_code
+    print(f"routing/out/route_{args.name}.geojson {os.path.getsize(target)}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

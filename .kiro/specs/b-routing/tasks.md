@@ -147,8 +147,8 @@ Steps build on each other: dependencies and config, config loading, generator, i
     - Output directory created when absent; git failure gives `unknown` (monkeypatch `subprocess.run`); write failure leaves no partial file (monkeypatch `os.replace`); size limit with `MAX_BYTES` patched small gives non-zero exit and no file
     - _Requirements: 6.13, 6.16, 6.17, 9.4_
 
-- [ ] 9. Wire the router command line
-  - [ ] 9.1 Add `main(argv)` and the `__main__` entry to `routing/route.py`
+- [x] 9. Wire the router command line
+  - [x] 9.1 Add `main(argv)` and the `__main__` entry to `routing/route.py`
     - argparse: `--name`; mutually exclusive required groups `--start-rc ROW COL` or `--start-en E N`, and `--end-rc` or `--end-en`; `--start-poi`, `--end-poi`; `--slope`, `--grid`, `--config` with defaults resolved against the repository root
     - Order: arguments, name, config, grid, slope, endpoints, cost raster, path, then write
     - Catch `RoutingError`, print `error: <message>` to stderr, return its exit code; invalid arguments exit non-zero (argparse code 2) with usage on stderr and write nothing
