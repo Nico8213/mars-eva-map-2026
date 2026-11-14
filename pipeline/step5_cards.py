@@ -77,7 +77,24 @@ card = {
     "verification_status": "candidate",
     "source_url": f"https://doi.org/{grid['doi']}",
 }
-cards = [card]
+ctx_card = {
+    "id": "ctx_orthomosaic_008",
+    "layer_name": None,
+    "mission": "MRO",
+    "instrument": "CTX",
+    "product": "JEZ_ctx_B_soc_008_orthoMosaic_6m_Eqc_latTs0_lon0, version 008 (from file name)",
+    "acquisition_date": "2006-01-01 to 2019-08-20 (USGS 'Time Period of Content')",
+    "resolution": "6 m/px",
+    "license": "Access constraints: None. Use constraints: Please cite authors. No license text found (USGS product page, checked 2026-11-14)",
+    "known_issues": [
+        "Per USGS: individual CTX images have an average horizontal displacement of 9.6 m; a small gap in the northwest corner of the full mosaic was filled with an image orthorectified to HRSC DTM"
+    ],
+    "confidence_layer": None,
+    "decision_affected": None,
+    "verification_status": "candidate",
+    "source_url": "https://doi.org/10.5066/P9GV1ND3",
+}
+cards = [card, ctx_card]
 
 with open(out_path, "w", encoding="utf-8", newline="\n") as f:
     json.dump(cards, f, indent=2, ensure_ascii=False)
