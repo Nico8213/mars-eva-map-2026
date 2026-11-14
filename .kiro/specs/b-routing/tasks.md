@@ -21,7 +21,7 @@ Steps build on each other: dependencies and config, config loading, generator, i
     - Every basis states source, version, and a `YYYY-MM-DD` date
     - _Requirements: 1.2, 1.3, 1.4, 1.5_
 
-  - [-] 1.3 Create `routing/route.py` with core types and config loading
+  - [x] 1.3 Create `routing/route.py` with core types and config loading
     - Define `RoutingError(message, exit_code)`, frozen dataclasses `CostParams` and `Grid`, and constants `OUT_DIR` and `MAX_BYTES` (52,428,800)
     - Implement `load_config(path)` returning `(CostParams, raw_config)`
     - Validate: file exists and is valid JSON; every key has non-empty `value` and `basis`; basis has a `YYYY-MM-DD` date checked with `datetime.date.fromisoformat`; numeric values are finite, greater than 0, and not bool; `connectivity` is 4 or 8; `cost_function` equals `"quadratic_slope"`
@@ -44,8 +44,8 @@ Steps build on each other: dependencies and config, config loading, generator, i
     - Missing and malformed config file tests
     - _Requirements: 1.3, 1.4, 1.5, 1.6_
 
-- [ ] 3. Implement the synthetic test data generator
-  - [~] 3.1 Create `routing/test_data/make_synthetic.py`
+- [x] 3. Implement the synthetic test data generator
+  - [x] 3.1 Create `routing/test_data/make_synthetic.py`
     - Implement `generate(seed, width, height, pixel_size_m, steep_deg) -> (slope, grid_dict)` using `numpy.random.default_rng(seed)` and a Gaussian-filtered noise field scaled into 2 to 15 degrees
     - Plant a flat block (at least 10 cells, values at or below 1.0), a steep block (at least 10 cells, `slope_limit + 10` capped at 90, limit read from `routing/config.json`), and at least one NaN cell
     - Clip finite values to 0 to 90 and cast to float32
@@ -69,8 +69,8 @@ Steps build on each other: dependencies and config, config loading, generator, i
     - One output line per file, missing seed, non-integer seed, unwritable directory leaves earlier files unchanged, oversize request rejected
     - _Requirements: 7.6, 7.7, 7.8_
 
-- [ ] 4. Implement input loading
-  - [ ] 4.1 Add `load_grid` and `load_slope` to `routing/route.py`
+- [x] 4. Implement input loading
+  - [x] 4.1 Add `load_grid` and `load_slope` to `routing/route.py`
     - `load_grid`: file exists, valid JSON, all of `pixel_size_m`, `width`, `height`, `top_left`, `crs` present (message names every missing field), `pixel_size_m` a number greater than 0, `width` and `height` integers greater than 0 (message names field and value)
     - `load_slope`: file exists, valid NumPy array, exactly 2 dimensions (message states actual ndim), shape equals `(height, width)` (message states both shapes)
     - All errors raise `RoutingError` exit code 2 and name the file; nothing is written

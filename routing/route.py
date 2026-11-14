@@ -9,6 +9,8 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+import numpy as np
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 OUT_DIR = REPO_ROOT / "routing" / "out"
 MAX_BYTES = 52_428_800
@@ -139,3 +141,89 @@ def load_config(path: Path) -> tuple[CostParams, dict]:
         connectivity=conn,
     )
     return params, raw
+
+
+_GRID_FIELDS = ("pixel_size_m", "width", "height", "top_left", "crs")
+
+
+def _is_number(v: object) -> bool:
+    return not isinstance(v, bool) and isinstance(v, (int, float))
+
+
+def load_grid(path: Path) -> Grid:
+    """Read and validate grid.json. Raises RoutingError (exit code 2)."""
+    path = Path(path)
+
+    def fail(detail: str) -> RoutingError:
+        return RoutingError(f"grid file {path}: {detail}", 2)
+
+    try:
+        text = path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        raise fail("file not found") from None
+    except (OSError, UnicodeDecodeError) as exc:
+        raise fail(f"cannot read file ({exc})") from None
+    try:
+        raw = json.loads(text)
+    except ValueError as exc:
+        raise fail(f"malformed JSON ({exc})") from None
+    if not isinstance(raw, dict):
+        raise fail("top level must be a JSON object")
+
+    missing = [k for k in _GRID_FIELDS if k not in raw]
+    if missing:
+        raise fail("missing required field(s): " + ", ".join(missing))
+
+    px = raw["pixel_size_m"]
+    if not _is_number(px) or not math.isfinite(px) or px <= 0:
+        raise fail(f"field 'pixel_size_m' must be a number greater than 0 (rejected value: {px!r})")
+    for key in ("width", "height"):
+        v = raw[key]
+        if isinstance(v, bool) or not isinstance(v, int) or v <= 0:
+            raise fail(f"field '{key}' must be an integer greater than 0 (rejected value: {v!r})")
+
+    tl = raw["top_left"]
+    if not isinstance(tl, dict):
+        raise fail(f"field 'top_left' must be an object (rejected value: {tl!r})")
+    for key in ("easting_m", "northing_m"):
+        if key not in tl:
+            raise fail(f"missing required field(s): top_left.{key}")
+        v = tl[key]
+        if not _is_number(v) or not math.isfinite(v):
+            raise fail(f"field 'top_left.{key}' must be a finite number (rejected value: {v!r})")
+
+    crs = raw["crs"]
+    if not isinstance(crs, str) or not crs.strip():
+        raise fail(f"field 'crs' must be a non-empty string (rejected value: {crs!r})")
+
+    return Grid(
+        pixel_size_m=float(px),
+        width=raw["width"],
+        height=raw["height"],
+        easting_m=float(tl["easting_m"]),
+        northing_m=float(tl["northing_m"]),
+        crs=crs,
+    )
+
+
+def load_slope(path: Path, grid: Grid) -> np.ndarray:
+    """Read slope.npy and check it is 2D with shape (height, width)."""
+    path = Path(path)
+
+    def fail(detail: str) -> RoutingError:
+        return RoutingError(f"slope file {path}: {detail}", 2)
+
+    try:
+        arr = np.load(path, allow_pickle=False)
+    except FileNotFoundError:
+        raise fail("file not found") from None
+    except Exception as exc:  # invalid NumPy file, pickled object, unreadable
+        raise fail(f"not a valid NumPy array file ({exc})") from None
+    if not isinstance(arr, np.ndarray):
+        raise fail("not a single NumPy array")
+    if arr.ndim != 2:
+        raise fail(f"slope array must have 2 dimensions, found {arr.ndim}")
+    expected = (grid.height, grid.width)
+    if arr.shape != expected:
+        raise fail(f"slope array shape {arr.shape} does not match grid (height, width) {expected}")
+    return arr
