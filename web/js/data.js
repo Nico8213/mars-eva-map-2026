@@ -111,6 +111,11 @@
   Cockpit.showError = function (message) {
     var status = document.getElementById('status');
     if (!status) { return; }
+    // An error replaces the success line, so only error lines remain.
+    var okLines = status.querySelectorAll('.status-ok');
+    for (var i = 0; i < okLines.length; i++) {
+      status.removeChild(okLines[i]);
+    }
     var line = document.createElement('div');
     line.className = 'error';
     line.textContent = message;
