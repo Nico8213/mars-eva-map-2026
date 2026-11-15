@@ -5,7 +5,7 @@
     "spec_version": "v1.0 (14 Nov 2026)",
     "config_file": "routing/config.json",
     "citation_format": "Section number and heading, bullet or row, then quoted original text.",
-    "lock_status": "NOT READY TO LOCK. Spec section 6: \"All **[TBD-DATA]** values in 4.2, 4.3 and 4.4 must be filled from the real files before `validation/params.json` is locked.\" See the missing list."
+    "lock_status": "LOCKED v1.0"
   },
   "slope": {
     "slope_limit_deg": {
@@ -85,7 +85,51 @@
   "grid": {
     "pixel_size_and_extent": {
       "value": "read from grid.json at run time; do not hard-code",
-      "basis": "Spec section 4.8: \"pixel size and grid extent: read from `grid.json`\"."
+      "values": {
+        "top_left_x_m": 4587600.0,
+        "top_left_y_m": 1096600.0,
+        "pixel_size_m": 1.0,
+        "width": 4000,
+        "height": 4000,
+        "x_range_m": [
+          4587600.0,
+          4591600.0
+        ],
+        "y_range_m": [
+          1092600.0,
+          1096600.0
+        ]
+      },
+      "corner_convention": {
+        "conclusion": "outer corner of the top-left pixel",
+        "meaning": "top_left_x_m and top_left_y_m are the outer corner of the top-left pixel, not its centre",
+        "cell_centre_formula": "x_centre = top_left_x_m + (col + 0.5) * pixel_size_m ; y_centre = top_left_y_m - (row + 0.5) * pixel_size_m",
+        "evidence": {
+          "sources_md_extent_m": {
+            "x_min": 4587600.0,
+            "x_max": 4591600.0,
+            "y_min": 1092600.0,
+            "y_max": 1096600.0
+          },
+          "sources_md_matches_outer_corner": true,
+          "sources_md_matches_centre_alternative": false,
+          "layers_json_slope_extent_minus_outer_corner_deg": {
+            "west": 0.0,
+            "east": 0.0,
+            "north": 0.0,
+            "south": 0.0
+          },
+          "layers_json_matches_outer_corner": true,
+          "half_pixel_in_degrees_for_scale": 8.435302429057608e-06,
+          "grid_json_coordinate_notes": "Top-left corner reprojected from the native projected CRS to Mars geographic coo",
+          "interfaces_md_lines": [
+            "- The top-left corner of pixel (row, col) is at easting = top_left.easting_m + col * pixel_size_m and northing = top_left.northing_m - row * pixel_size_m. Northing increases upward; image rows increase downward.",
+            "| `top_left` | object `{easting_m: number, northing_m: number}` | yes | Coordinates of the top-left pixel corner | TBD |"
+          ]
+        },
+        "basis": "Decided by validation/collect_reference_facts.py from three files that agree: data/processed/sources.md crop extent (x 4587600 to 4591600 = top_left_x + width*pixel; y 1092600 to 1096600 = top_left_y - height*pixel; the centre reading would put the edges half a pixel further out), data/processed/layers/layers.json slope extent (equal to the inverse-projected outer corners, difference 0.0 deg), and grid.json coordinate_notes 'Top-left corner' with docs/INTERFACES.md 'top-left pixel corner'. The original DTM file is not in the workspace, so no direct check against the GeoTIFF transform. Nico's decision: centre = corner + (index + 0.5) * pixel."
+      },
+      "basis": "Spec section 4.8: \"pixel size and grid extent: read from `grid.json`\". Values and corner convention computed by validation/collect_reference_facts.py."
     },
     "extent_definition": {
       "value": "rectangular bounds of grid.json, in the projected CRS of section 4.3. A traverse point is 'inside' if it lies within those bounds.",
@@ -165,41 +209,195 @@
       "max_relative_difference": 0.01,
       "passed": true,
       "basis": "Spec section 4.3 item 5, second check: \"the great-circle (haversine) distance on the sphere and the distance in the local projection differ by less than 1%\". Section 7 key crs.haversine_check_max_relative_difference = 0.01."
+    },
+    "terrain_file": {
+      "official_product_name": {
+        "value": "JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40",
+        "basis": "data/processed/sources.md 'Official product name'. Spec section 4.3 'What the terrain file is' gives the file JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40.tif."
+      },
+      "local_file": {
+        "value": "JEZ_hirise_soc_006_DTM_1m.tif",
+        "basis": "data/processed/sources.md 'Local file'."
+      },
+      "version": {
+        "value": "006",
+        "basis": "grid.json 'version'. Spec section 4.3: version 006 (taken from the file name)."
+      },
+      "source_product": {
+        "value": "JEZ_hirise_soc_006_DTM_1m",
+        "basis": "grid.json 'source_product'."
+      },
+      "doi": {
+        "value": "10.5066/P9REJ9JN",
+        "basis": "grid.json 'doi'. Spec section 4.3: DOI 10.5066/P9REJ9JN."
+      }
+    },
+    "distance_projection": {
+      "value": "local azimuthal equidistant on the same sphere (radius_m from crs_check), centred on the centre of the grid extent; distances in metres",
+      "centre": {
+        "lat_deg": 18.46656407769292,
+        "lon_deg": 77.4293280568056
+      },
+      "check": "coordinate_system/haversine_check",
+      "basis": "Spec section 4.3 'Decisions' item 2: \"All distances are computed in a local azimuthal equidistant projection on the same sphere (`+proj=aeqd +R=3396190`), centred on the centre of the grid extent\". Centre taken from the haversine check computed by validation/fill_params.py."
     }
   },
   "reference_path": {
     "files": {
       "traverse_file": "M20_traverse.json",
       "waypoints_file": "M20_waypoints.json",
-      "basis": "Spec section 4.2 table, 'Files': \"`M20_traverse.json` (line segments), `M20_waypoints.json` (points)\". Section 7 key 'reference'."
+      "basis": "Spec section 4.2 table, 'Files': \"`M20_traverse.json` (line segments), `M20_waypoints.json` (points)\". Section 7 key 'reference'.",
+      "traverse_bytes": 1723218,
+      "waypoints_bytes": 603126
     },
     "snapshot_date": {
-      "value": "2026-10-11",
-      "last_sol_in_file": 1980,
-      "basis": "Spec section 4.2 table, 'Snapshot used': \"2026-10-11 snapshot, last sol 1980 [SOURCE: project plan \u00a77.4; \u00a77.6 says validation uses only this snapshot]\". New downloads never replace this snapshot."
+      "value": "2026-11-15 snapshot (replaces the 2026-10-11 snapshot, which is not available as a file)",
+      "last_sol_in_file": 2022,
+      "last_sol_in_waypoints": 2022,
+      "basis": "Spec section 4.2 table, 'Snapshot used': \"Downloaded by Austin on 2026-11-15... This snapshot replaces an earlier 2026-10-11 snapshot... Only this snapshot is used.\" Last sols computed by validation/update_reference_rules.py."
     },
     "download_date": {
-      "value": "2026-10-11 (tentative)",
-      "basis": "Spec section 4.2 table, 'Download date': \"2026-10-11 [SOURCE: project plan \u00a77.4]. **[TBD-DATA]** confirm against the file's timestamp in `validation/data/`.\"",
-      "status": "needs confirmation against the real file; also listed under missing"
+      "value": "2026-11-15, 08:06 to 08:08 (UTC+8)",
+      "file_mtimes": {
+        "M20_traverse.json": "2026-11-15 08:08:34 UTC+0800",
+        "M20_waypoints.json": "2026-11-15 08:06:23 UTC+0800"
+      },
+      "basis": "Spec section 4.2 table, 'Snapshot used'; file modification times read by validation/update_reference_rules.py; validation/data/SNAPSHOT.md."
     },
     "cleaning": {
-      "remove_partial_segments": "pending_nico_approval",
-      "remove_duplicate_segments": "pending_nico_approval",
-      "expected_counts": {
-        "points": 703,
-        "segments": 556
-      },
-      "basis": "Spec section 4.2 table, 'Counts to re-check': \"703 points, 556 segments. Before computing any length, remove 5 partial segments and 1 duplicate segment\". Section 4.4 'Preparing the reference line' item 1.",
-      "status": "pending_nico_approval; counts must be confirmed by the script; see missing",
       "partial_duplicate_rule": {
-        "value": "pending_nico_approval",
-        "basis": "Spec section 4.2 'Counts to re-check' and section 4.4 'Preparing the reference line' item 1; section 7 key reference.partial_duplicate_rule. Left for Nico to approve."
+        "value": "Segment indices start at 0 (position in the features list of M20_traverse.json). partial = segment with fewer than 2 distinct points, or length equal to 0: segments 206, 207, 369, 402, 490. duplicate = segment whose coordinates equal those of the previous segment in file order: segments 207. Remove the union; each segment counts once; the union is 5 segments: 206, 207, 369, 402, 490.",
+        "status": "approved by Nico",
+        "basis": "Spec section 4.2 'Counts to re-check' (\"Nico approves the rule\") and section 4.4 'Preparing the reference line' item 1; section 7 key partial_duplicate_rule. Rule text as approved by Nico in this task.",
+        "index_base": 0,
+        "partial_segments": [
+          206,
+          207,
+          369,
+          402,
+          490
+        ],
+        "duplicate_segments": [
+          207
+        ],
+        "union_segments": [
+          206,
+          207,
+          369,
+          402,
+          490
+        ],
+        "union_count": 5,
+        "numbers_computed_by": "validation/collect_reference_facts.py"
       },
-      "spec_stated_removals": {
-        "partial": 5,
-        "duplicate": 1,
-        "note": "Numbers as written in spec section 4.2; not adopted until Nico approves."
+      "remove_partial_segments": true,
+      "remove_duplicate_segments": true,
+      "removed_segments": {
+        "numbering": "segment numbers start at 0 (position in features list of M20_traverse.json)",
+        "segments": [
+          206,
+          207,
+          369,
+          402,
+          490
+        ],
+        "count": 5,
+        "partial_only_count": 4,
+        "duplicate_only_count": 0,
+        "both_count": 1,
+        "partial_segments": [
+          206,
+          207,
+          369,
+          402,
+          490
+        ],
+        "duplicate_segments": [
+          207
+        ],
+        "matches_approved_list": true,
+        "basis": "Computed by validation/update_reference_rules.py and checked against Nico's list 206, 207, 369, 402, 490 (5 segments). Spec section 4.4 item 1."
+      },
+      "counts": {
+        "segments_before": 559,
+        "segments_after": 554,
+        "points_before": 36661,
+        "points_after": 36646,
+        "waypoints": 708,
+        "basis": "Computed from validation/data/M20_traverse.json and M20_waypoints.json. Spec section 4.2 'Counts to re-check': 708 waypoints, 559 segments in the new snapshot."
+      },
+      "recorded_not_filtered": {
+        "segments_180_181": [
+          {
+            "segment": 180,
+            "sol": 667,
+            "fromRMC": "32_482",
+            "toRMC": "32_580",
+            "length": 10.0,
+            "n_points": 15,
+            "removed": false
+          },
+          {
+            "segment": 181,
+            "sol": 668,
+            "fromRMC": "32_482",
+            "toRMC": "32_580",
+            "length": 9.57,
+            "n_points": 15,
+            "removed": false
+          }
+        ],
+        "rmc_chain_breaks": [
+          {
+            "between_segments": [
+              83,
+              84
+            ],
+            "toRMC_prev": "9_3478",
+            "fromRMC_next": "9_2982"
+          },
+          {
+            "between_segments": [
+              84,
+              85
+            ],
+            "toRMC_prev": "9_5156",
+            "fromRMC_next": "9_2982"
+          },
+          {
+            "between_segments": [
+              89,
+              90
+            ],
+            "toRMC_prev": "9_9436",
+            "fromRMC_next": "9_9314"
+          },
+          {
+            "between_segments": [
+              95,
+              96
+            ],
+            "toRMC_prev": "11_2472",
+            "fromRMC_next": "11_1110"
+          },
+          {
+            "between_segments": [
+              180,
+              181
+            ],
+            "toRMC_prev": "32_580",
+            "fromRMC_next": "32_482"
+          },
+          {
+            "between_segments": [
+              534,
+              535
+            ],
+            "toRMC_prev": "88_5126",
+            "fromRMC_next": "88_4292"
+          }
+        ],
+        "basis": "Nico's approval: 180/181 and RMC breakpoints are recorded only and not filtered."
       }
     },
     "ordering": {
@@ -207,8 +405,8 @@
       "basis": "Spec section 4.4 'Preparing the reference line' item 2: \"Order everything by **ascending sol**. Do not trust the order of features in the file.\""
     },
     "authoritative_citation": {
-      "value": "PLACES, Release 15, sols 0-1762",
-      "basis": "Spec section 4.2 table, 'Authoritative citation': \"PLACES, Release 15, sols 0\u20131762\". Section 4.4 last paragraph: if the validation reference lies mostly at sols above 1762, say so in the report."
+      "value": "Mars 2020 Rover PLACES Bundle (PDS Geosciences Node), Release 16, posted 2026-08-11; sols 0 to 1897 in best_interp.csv (computed)",
+      "basis": "Spec section 4.2 table, 'Authoritative citation': \"Release 16, posted 2026-08-11, sols 0 to 1897... supersedes the Release 15\". Sol range computed from validation/data/best_interp.csv."
     },
     "source_page": {
       "value": "https://science.nasa.gov/mission/mars-2020-perseverance/location-map/",
@@ -225,24 +423,207 @@
     "local_directory": {
       "value": "validation/data/",
       "basis": "Spec section 4.2 table, 'Source': \"the small files go in `validation/data/`\"."
+    },
+    "sha256_traverse": {
+      "value": "6DDD0ECE913D75B45D105946082F95ED84E68F4718B68D32A4421DC30877E7E6",
+      "basis": "Spec section 4.2 table, 'Integrity'; section 7 key sha256_traverse. Computed by validation/update_reference_rules.py."
+    },
+    "sha256_waypoints": {
+      "value": "BD143EE69241229926ABD373E6305B8BBB326D6B5A7B4A8D6935262696F93DC4",
+      "basis": "Spec section 4.2 table, 'Integrity'; section 7 key sha256_waypoints. Computed by validation/update_reference_rules.py."
+    },
+    "sol_coverage": {
+      "value": {
+        "places": {
+          "file": "validation/data/best_interp.csv",
+          "rows": 33458,
+          "rows_excluding_SITE": 33370,
+          "min_sol": 0,
+          "max_sol": 1897
+        },
+        "mmgis_traverse": {
+          "file": "validation/data/M20_traverse.json",
+          "segments_raw": 559,
+          "segments_after_removal": 554,
+          "min_sol": 14,
+          "max_sol": 2022,
+          "min_sol_raw": 14,
+          "max_sol_raw": 2022,
+          "segments_above_places_max_sol": 23
+        },
+        "mmgis_waypoints": {
+          "file": "validation/data/M20_waypoints.json",
+          "points": 708,
+          "min_sol": 13,
+          "max_sol": 2022,
+          "points_above_places_max_sol": 32
+        },
+        "spec_places_max_sol": 1897,
+        "places_max_sol_matches_spec": true
+      },
+      "report_note": "PLACES is the primary reference; MMGIS is used only as a cross-check. The report states the sol range of each (above). No truncation at sol 1897.",
+      "basis": "Nico's approval (no cut at sol <= 1897). Spec section 4.2 'Authoritative citation' and section 4.4 last paragraph. Ranges computed by validation/update_reference_rules.py."
+    },
+    "places": {
+      "download_time": {
+        "value": "2026-11-15 09:42:05",
+        "timezone": "not stated; file times on this machine are UTC+0800",
+        "file_mtime_computed": "2026-11-15 09:40:41 UTC+0800",
+        "basis": "Download time as stated by the project (task instruction of 2026-11-15). The file modification time read from validation/data/best_interp.csv is shown next to it; the two differ by about 1.5 minutes."
+      },
+      "file": {
+        "value": "validation/data/best_interp.csv",
+        "basis": "Spec section 4.3 item 5 (PLACES SITE row) and section 4.2 'Authoritative citation'."
+      },
+      "bytes": {
+        "value": 8684070,
+        "basis": "Computed by validation/collect_reference_facts.py (file size)."
+      },
+      "lines_including_header": {
+        "value": 33459,
+        "basis": "Computed by validation/collect_reference_facts.py."
+      },
+      "data_rows": {
+        "value": 33458,
+        "basis": "Computed by validation/collect_reference_facts.py (rows excluding the header)."
+      },
+      "sha256": {
+        "value": "58FBC62F2676195A00B40B2DA53A797A70284A8D2344B288C999D325B7CCB4CC",
+        "basis": "Computed by validation/collect_reference_facts.py. Spec section 4.8: record exact names, download time and SHA-256."
+      },
+      "columns": {
+        "value": [
+          "frame",
+          "site",
+          "drive",
+          "pose",
+          "landing_x",
+          "landing_y",
+          "landing_z",
+          "northing",
+          "easting",
+          "planetocentric_latitude",
+          "planetodetic_latitude",
+          "longitude",
+          "elevation",
+          "map_pixel_line",
+          "map_pixel_sample",
+          "dem_pixel_line",
+          "dem_pixel_sample",
+          "roll",
+          "pitch",
+          "yaw",
+          "quat_s",
+          "quat_v1",
+          "quat_v2",
+          "quat_v3",
+          "areoid",
+          "radius",
+          "sclk",
+          "sol"
+        ],
+        "basis": "Header of best_interp.csv, read by validation/collect_reference_facts.py."
+      },
+      "columns_used": {
+        "value": [
+          "planetocentric_latitude",
+          "longitude"
+        ],
+        "basis": "Spec section 4.3 item 4: \"if PLACES is used, only its planetocentric latitude and longitude columns are read\"."
+      },
+      "path_rows": {
+        "value": "Path = rows with frame == ROVER, ordered by ascending sol; rows with the same sol keep their relative order in the file. Start = the first row with frame == SITE (the landing site, sol recorded as n/a). The other SITE rows are not part of the path.",
+        "frame_counts": {
+          "SITE": 88,
+          "ROVER": 33370
+        },
+        "pose_values": [
+          "-1"
+        ],
+        "sites_with_SITE_row": 88,
+        "rover_sol_nondecreasing_in_file_order": true,
+        "rover_sol_min": 0,
+        "rover_sol_max": 1897,
+        "status": "set by Nico (latest decision); checks printed by validation/print_path_checks.py",
+        "basis": "Nico's decision (latest). Spec section 4.4 'Preparing the reference line' item 2: \"Order everything by ascending sol\"; section 4.4 'Definitions': \"Landing site and first reference point\" and \"First path point\" = the landing site. Frame values, row counts and sol checks computed by validation/print_path_checks.py. SITE rows have sol -1 in the file, so they cannot be ordered by sol; only the first SITE row (landing site) is used.",
+        "path_frame": "ROVER",
+        "path_row_count": 33370,
+        "start_frame": "SITE",
+        "start_row": {
+          "which": "first SITE row in file order",
+          "site": "1",
+          "sol": "n/a",
+          "csv_sol_value": "-1",
+          "planetocentric_latitude": 18.444627146,
+          "longitude_east_deg": 77.450885729
+        },
+        "excluded_site_rows": 87,
+        "sort": {
+          "key": "sol ascending",
+          "ties": "keep file order (stable sort)"
+        }
+      }
+    },
+    "licence": {
+      "value": "No licence statement found for the data files (checked by VN, 2026-11-15)",
+      "basis": "Nico's decision (latest). Spec section 4.2 table, 'Licence'."
+    },
+    "mmgis_latitude": {
+      "value": "latitude type not stated in official documentation. Calculations treat the MMGIS latitude as planetocentric, for cross-check only.",
+      "basis": "Nico's decision (latest). Spec section 4.3 item 5, 'Latitude convention of the rover file'. PLACES is the primary reference; MMGIS is only a cross-check (spec 4.2). Use the blocked-share diagnostic (4.6 item 7) as a warning."
     }
   },
   "validation_route": {
     "landing_site": {
-      "value": "the point with the smallest sol in M20_waypoints.json. Expected sol 0 (touchdown, 'Octavia E. Butler Landing'). If the smallest sol is not 0, stop and ask Nico.",
-      "basis": "Spec section 4.4 'Definitions': \"**Landing site** = the point with the smallest sol in `M20_waypoints.json`. It should be sol 0\"; \"If the smallest sol is not 0, stop and ask Nico.\""
+      "value": "first PLACES row with frame == SITE in best_interp.csv; sol recorded as n/a",
+      "places_site_row": {
+        "data_row": 1,
+        "site": "1",
+        "planetocentric_latitude": 18.444627146,
+        "longitude_east_deg": 77.450885729,
+        "sol": "n/a",
+        "csv_sol_value": "-1",
+        "inside_grid_extent": true
+      },
+      "report_text": "\u8d77\u70b9\u662f PLACES SITE \u884c\uff0cMMGIS \u7b2c\u4e00\u4e2a\u9876\u70b9\u4e0e\u5b83\u91cd\u5408",
+      "mmgis_first_vertex_vs_places_site": {
+        "file_order_after_removal": {
+          "segment": 0,
+          "sol": 14,
+          "lon": 77.45088573,
+          "lat": 18.44462715,
+          "distance_to_places_site_m_aeqd": 0.00024367497633356953,
+          "distance_to_places_site_m_haversine": 0.0002436750502844519
+        },
+        "ascending_sol_after_removal": {
+          "segment": 0,
+          "sol": 14,
+          "lon": 77.45088573,
+          "lat": 18.44462715,
+          "distance_to_places_site_m_aeqd": 0.00024367497633356953,
+          "distance_to_places_site_m_haversine": 0.0002436750502844519
+        }
+      },
+      "basis": "Nico's approval. Spec section 4.4 'Definitions' (landing site and first path point), section 4.3 item 5 (SITE row sanity values). Distance computed in the local aeqd projection of 4.3 by validation/update_reference_rules.py."
     },
     "reference_run": {
       "value": "the first uninterrupted run of the ordered traverse that is inside the extent, starting at the landing site. If the landing site is outside the extent, stop and ask Nico.",
       "basis": "Spec section 4.4 'Definitions': \"**Validation reference** = the first uninterrupted run of the ordered traverse that is inside the extent, starting at the landing site.\""
     },
     "first_path_point": {
-      "value": "the landing site",
-      "basis": "Spec section 4.4 'Definitions': \"**First path point** = the landing site.\""
+      "value": "the PLACES SITE row (see landing_site)",
+      "basis": "Nico's approval; spec section 4.4 'First path point'."
     },
     "last_path_point": {
-      "value": "the last vertex of the validation reference before the traverse first leaves the extent (largest sol in the run; ties broken by the farther point along the path, e.g. larger dist_total). A real rover position; no boundary-intersection point is created.",
-      "basis": "Spec section 4.4 'Definitions': \"**Last path point** = the last vertex of the validation reference before the traverse first leaves the extent... No boundary-intersection point is created.\""
+      "value": "The last vertex of the validation reference before the traverse first leaves the extent (the largest sol in the run). A real rover position; no boundary-intersection point is created. Tie rule for equal sol: dist_total is not used. PLACES: take the row that comes later in the file. MMGIS traverse: take the vertex of the segment with the larger segment index; within the same segment, the larger vertex index.",
+      "basis": "Spec section 4.4 'Definitions': \"**Last path point** = the last vertex of the validation reference before the traverse first leaves the extent... No boundary-intersection point is created.\" Tie rule changed by Nico's approval of 2026-11-15 (see tie_rule).",
+      "tie_rule": {
+        "uses_dist_total": false,
+        "places": "the row that comes later in the file",
+        "mmgis_traverse": "larger segment index; within the same segment, larger vertex index",
+        "approved_by": "Nico, 2026-11-15",
+        "basis": "Nico's approval, 2026-11-15. Replaces the dist_total tie-break of spec section 4.4 'Last path point' (\"the one farther along the path, for example the larger `dist_total`\")."
+      }
     },
     "clipping_method": {
       "value": "by the rule above only: take the first in-extent run from the landing site; no geometric line clipping, no hand-drawn cuts, terrain not cropped here",
@@ -281,6 +662,69 @@
       ],
       "on_fail": "report the run as 'invalid' with the reason; never silently drop it",
       "basis": "Spec section 4.5 'Run is valid (technical gate)'."
+    },
+    "sol_truncation": {
+      "value": "none; the reference is not cut at sol 1897",
+      "basis": "Nico's approval; spec section 4.4 last paragraph still requires the report to say if the reference lies above PLACES max sol."
+    },
+    "locked_reference_segment": {
+      "first_point": {
+        "value": {
+          "path_index": 0,
+          "which": "first SITE row (landing site)",
+          "frame": "SITE",
+          "site": "1",
+          "drive": "-1",
+          "sol": "n/a",
+          "csv_sol_value": "-1",
+          "planetocentric_latitude": 18.444627146,
+          "longitude_east_deg": 77.450885729,
+          "file_line": 2
+        },
+        "basis": "Nico confirmed, 2026-11-15. Spec section 4.4 'Definitions' (first path point = landing site)."
+      },
+      "last_point": {
+        "value": {
+          "path_index": 898,
+          "file_line": 904,
+          "frame": "ROVER",
+          "site": "5",
+          "drive": "816",
+          "sol": 134,
+          "planetocentric_latitude": 18.432837004,
+          "longitude_east_deg": 77.452126516,
+          "grid_row": 3999,
+          "grid_col": 3351,
+          "slope_deg": 2.9099,
+          "blocked": false,
+          "blocked_rule": "slope > 20 or NaN"
+        },
+        "tie_rule": "last row in the file among rows with the same sol (see last_path_point.tie_rule)",
+        "basis": "Nico confirmed, 2026-11-15. Computed from validation/data/best_interp.csv, grid and slope.npy with the logic of validation/print_last_point.py. Spec section 4.4 'Last path point'."
+      },
+      "segment_used": {
+        "value": "only the first in-grid segment of the PLACES path, path index 0 to 898 (899 points); no change of segment",
+        "path_index_from": 0,
+        "path_index_to": 898,
+        "points": 899,
+        "change_segment": false,
+        "basis": "Nico confirmed, 2026-11-15. Spec section 4.4 'Validation reference' (first uninterrupted run from the landing site)."
+      },
+      "recorded_not_explained": {
+        "segment": "third in-grid segment of each source",
+        "places_third_segment": {
+          "path_index_from": 2832,
+          "path_index_to": 4189,
+          "length_m_aeqd": 2147.661
+        },
+        "mmgis_third_segment": {
+          "first_sol": 353,
+          "last_sol": 386,
+          "length_m_aeqd": 2716.261
+        },
+        "status": "not explained; recorded as numbers only; no parameter changed",
+        "basis": "Nico confirmed, 2026-11-15. Lengths computed in the local aeqd projection of spec section 4.3 by the logic of validation/print_places_segments.py and validation/print_nico_answers.py."
+      }
     }
   },
   "comparison": {
@@ -289,8 +733,13 @@
       "basis": "Spec section 4.9: \"Comparison segment: the validation reference of 4.4... Parts of the traverse outside the grid, and parts after re-entry, are not compared.\""
     },
     "line_resampling": {
-      "value": "both lines converted to equally spaced points along their length, spacing = one grid pixel (from grid.json), by linear interpolation in the projected metre coordinates. Never interpolate in degrees. Method and spacing written into report.json.",
-      "basis": "Spec section 4.5 'Resampling' items 3-4: \"spacing = one grid pixel (from `grid.json`), by linear interpolation in the projected metre coordinates of 4.3. Never interpolate in degrees.\"; \"The method and spacing are written into `report.json`.\""
+      "value": "Both lines are built through cell centres (centre = outer corner + (index + 0.5) * pixel_size_m) and resampled at equal spacing along their length by linear interpolation in the local metre coordinates. The first and last vertex are kept at their exact positions; the last interval may be shorter than one pixel. Never interpolate in degrees. Method and spacing are written into report.json.",
+      "spacing_m": 1.0,
+      "spacing_basis": "one grid pixel, from grid.json pixel_size_m",
+      "polyline_vertices": "cell centres",
+      "keep_first_and_last_vertex": true,
+      "last_interval_may_be_shorter_than_one_pixel": true,
+      "basis": "Nico's decision (latest). Spec section 4.5 'Resampling' items 3-4: \"spacing = one grid pixel (from `grid.json`), by linear interpolation in the local metre coordinates of 4.3. Never interpolate in degrees.\"; \"The method and spacing are written into `report.json`.\" Spec section 4.3 item 1: \"Grid cell centres are converted to latitude/longitude\"."
     },
     "metrics": {
       "M0_mean_max_distance": {
@@ -312,7 +761,10 @@
       },
       "end_point_error_m": {
         "definition": "distance between our route's first/last point and the reference's first/last point. Information only.",
-        "basis": "Spec section 4.5, after the verdict table: \"Also report `end_point_error_m`\"."
+        "basis": "Spec section 4.5, after the verdict table: \"Also report `end_point_error_m`\". Cell-centre offset: Nico's decision (latest); value = sqrt(2)/2 * pixel_size_m computed by validation/collect_reference_facts.py.",
+        "report_note": "The report must state that end_point_error_m includes a cell-centre offset of up to about 0.71 pixel (0.71 m at 1.0 m per pixel): our route ends at cell centres, which can be up to half a pixel in each axis from the true point (sqrt(2)/2 pixel in the worst case).",
+        "max_cell_centre_offset_px": 0.7071067811865476,
+        "max_cell_centre_offset_m": 0.7071067811865476
       },
       "computed_by": {
         "value": "code only, never typed by hand",
@@ -352,48 +804,7 @@
       "basis": "Spec section 4.5 verdict table: \"at least 0.80 | close match\"; \"at least 0.50 and below 0.80 | partial match\"; \"below 0.50 | weak match\". Text: \"Verdict labels use M1 at `d_tol` = 10 m.\" Section 4.8: \"verdict thresholds on M1: 0.80 and 0.50\"."
     }
   },
-  "missing": [
-    {
-      "parameter": "SHA-256 of M20_traverse.json and M20_waypoints.json",
-      "detail": "Spec section 4.2 'Integrity': [TBD-DATA]. Must be computed from the real files (certutil -hashfile <file> SHA256) and written here and in docs/CITATIONS.md. Not invented."
-    },
-    {
-      "parameter": "final traverse source link and the files in validation/data/",
-      "detail": "Spec section 4.2 'Source': VN provides the final source link. The direct JSON URLs are third-party and unverified."
-    },
-    {
-      "parameter": "download date confirmation",
-      "detail": "Spec says 2026-10-11 but marks it [TBD-DATA]: confirm against the file's timestamp in validation/data/."
-    },
-    {
-      "parameter": "confirmed counts of points and segments",
-      "detail": "Spec section 4.2 expects 703 points and 556 segments (before removing 5 partial and 1 duplicate segments). [TBD-DATA]: the script must print the counts and they must match."
-    },
-    {
-      "parameter": "traverse data licence",
-      "detail": "Spec section 4.2 'Licence': [TBD-DATA] record what NASA states for this data in docs/CITATIONS.md."
-    },
-    {
-      "parameter": "which file carries sol and dist_total, and the exact field names",
-      "detail": "Spec section 4.4 item 2: [TBD-DATA] the field names were only seen on third-party pages. Needs the real file."
-    },
-    {
-      "parameter": "CRS string and planet radius",
-      "detail": "Spec section 4.3 item 2: the rule for where to read them is given (HiRISE DTM metadata or grid.json), but the values are [TBD-DATA] and not written in the spec. Needs the real file."
-    },
-    {
-      "parameter": "landing site sol, index and coordinates",
-      "detail": "Spec section 4.4: the definition is given, but the script must print sol, index and coordinates and they must be copied here. [TBD-DATA]."
-    },
-    {
-      "parameter": "how the route line is built from the cell path",
-      "detail": "Spec section 4.5 says both lines are converted to equally spaced points by linear interpolation, but does not say whether the route polyline uses cell centres or cell corners, or whether the exact first and last vertex are always kept after resampling."
-    },
-    {
-      "parameter": "Austin's item 10",
-      "detail": "Spec section 6: \"**[TBD, ask Austin]** (his message said 10 items but numbered only 9).\" Still open."
-    }
-  ],
+  "missing": [],
   "terrain_integrity": {
     "sha256_slope_npy": {
       "value": "1A7E0A2EA8E897BA3654D8407EE99019E0420A61824BC57F053E6C505889F49A",
