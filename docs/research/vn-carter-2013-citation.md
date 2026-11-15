@@ -23,13 +23,13 @@ Volume and issue: 118, issue 4
 Result: Correct.
 
 Pages: 831-858
-Result: Correct. Note: the PDF copy archived by ESA shows a running header "VOL. 118, 1-28", which is the online-article numbering. The issue pages 831-858 are the ones to cite.
+Result: Correct. Note: the PDF copy archived by ESA shows a running header "VOL. 118, 1-28" (manuscript pagination, not the issue pages). The issue pages 831-858 are the ones to cite.
 
 Year: 2013
 Result: Correct. The British Library record gives the issue publication date as 2013-04-24.
 
 DOI: 10.1029/2012JE004145
-Result: Correct, the same DOI appears in all records below.
+Result: Correct. The DOI appears in the IAS record and in the ESA archived copy, and the publisher page matches it.
 
 Errors found: None.
 
@@ -38,9 +38,10 @@ Carter, J., Poulet, F., Bibring, J.-P., Mangold, N., & Murchie, S. (2013). Hydro
 
 ## Sources used
 
-- British Library catalogue record (title, authors, issue 4, pages 831-858, publication date 2013-04-24, DOI): https://eld.bl.uk/catalog/100046243194_0x000001
-- IAS (Universite Paris-Saclay) publication record (journal, volume 118, pagination 831-858): https://www.ias.universite-paris-saclay.fr/fr/node/1408
-- IAS record, English page (DOI 10.1029/2012JE004145): https://ias.universite-paris-saclay.fr/en/node/1408
+- British Library catalogue record (title, authors, issue 4, pages 831-858, publication date 2013-04-24): https://eld.bl.uk/catalog/100046243194_0x000001
+- IAS (Universite Paris-Saclay) publication record, French page (journal, volume 118, pagination 831-858): https://www.ias.universite-paris-saclay.fr/fr/node/1408
+- IAS record, English page (journal, volume 118, pagination 831-858): https://ias.universite-paris-saclay.fr/en/node/1408
+- IAS record with DOI 10.1029/2012JE004145: https://www.ias.universite-paris-saclay.fr/fr/content/hydrous-minerals-mars-seen-crism-and-omega-imaging-spectrometers-updated-global-view
 - Copy of the paper archived by ESA (header shows JGR Planets, vol. 118, doi:10.1029/2012JE004145, 2013): https://archives.esac.esa.int/psa/ftp/MARS-EXPRESS/OMEGA/MEX-M-OMEGA-5-DDR-GLOBAL-MAPS-V1.0/DOCUMENT/CARTER_JGR2013.PDF
 
 Confidence (independent records): Confirmed by several independent records.
