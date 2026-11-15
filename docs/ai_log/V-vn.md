@@ -1,8 +1,3 @@
-# AI log: VN (V)
-
-Add one line every time an AI tool helps you. Write in English.
-Format: date time | tool and model | what you asked | what it did | how you checked it
-
 # AI log - V (VN)
 
 Role: data facts research and website testing (weak computer, browser only, no Kiro).
