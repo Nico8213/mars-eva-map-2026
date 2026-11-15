@@ -117,6 +117,7 @@ def main():
     sync_folder(PROCESSED / "layers", DEST / "layers")
     sync_file(PROCESSED / "layers.json", DEST / "layers" / "layers.json")
     sync_file(PROCESSED / "poi.geojson", DEST / "poi.geojson")
+    sync_file(PROCESSED / "grid.json", DEST / "grid.json")
     sync_file(PROCESSED / "data_cards.json", DEST / "data_cards.json")
 
     routes = sync_glob(ROUTING_OUT, "*.geojson", DEST / "routes")
