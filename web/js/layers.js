@@ -122,6 +122,18 @@
   }
 
   function buildLayers(entries) {
+    // 1. Completely remove the spectral layer from the list
+    entries = entries.filter(function(entry) {
+      return !entry.name.toLowerCase().includes('spectral');
+    });
+
+    // 2. Rename CTX before it gets built
+    entries.forEach(function(entry) {
+      if (entry.name === 'CTX' || entry.data_card_id === 'ctx_orthomosaic_008') {
+        entry.name = 'Optical (CTX 6 m)';
+      }
+    });
+
     var map = Cockpit.map;
     var container = document.getElementById('layer-controls');
     Cockpit.layerOverlays = [];
