@@ -10,6 +10,8 @@
   var ROUTE_WEIGHT_HOVER = 7;
   var CASING_WEIGHT = 8;
   var CASING_WEIGHT_HOVER = 11;
+  // Stroke width of the invisible click layer (pixels).
+  var HIT_WEIGHT = 20;
 
   // The only popup fields. Labels are these property names; values are read from the feature.
   var POPUP_KEYS = ['name', 'length_m', 'max_slope_deg', 'slope_threshold_deg', 'data_used', 'cost_function'];
@@ -51,7 +53,7 @@
     };
   }
   // Draw one route: a dark casing line below a bright line, so it is visible
-  // on every layer. Only the bright line is clickable.
+  // on every layer. A third, invisible wide line takes the clicks.
   function drawRoute(feature, group, grid) {
     var toLatLng = gridToLatLng(grid);
     var casing = L.geoJSON(feature, {
@@ -60,12 +62,20 @@
       interactive: false,
       style: function () { return { color: '#000', weight: CASING_WEIGHT, opacity: 0.8 }; }
     });
+    // The visible line is display only. Its 4 px stroke is too thin to hit reliably.
     var line = L.geoJSON(feature, {
+      coordsToLatLng: toLatLng,
+      pane: 'routes',
+      interactive: false,
+      style: function () { return { color: ROUTE_COLOR, weight: ROUTE_WEIGHT, opacity: 1 }; }
+    });
+    // Invisible wide line on top of the others. It handles the click and hover.
+    var hit = L.geoJSON(feature, {
       coordsToLatLng: toLatLng,
       pane: 'routes',
       // A route click must not also open the layer popup.
       bubblingMouseEvents: false,
-      style: function () { return { color: ROUTE_COLOR, weight: ROUTE_WEIGHT, opacity: 1 }; },
+      style: function () { return { color: '#000', weight: HIT_WEIGHT, opacity: 0, lineCap: 'round', lineJoin: 'round' }; },
       onEachFeature: function (f, layer) {
         layer.bindPopup(function () { return buildPopup(f.properties || {}); });
         layer.on('mouseover', function () {
@@ -80,6 +90,7 @@
     });
     group.addLayer(casing);
     group.addLayer(line);
+    group.addLayer(hit);
   }
 
   // Legend entry for routes. Only the label and the note below are written here.

@@ -98,10 +98,13 @@
     document.dispatchEvent(new CustomEvent('cockpit:layers-loaded', { detail: layerEntries }));
     announceMapReady();
     
-    // 加载完成后显示静态快照状态
+    // Show the snapshot status only when no error has been shown.
     var statusDiv = document.getElementById('status');
-    if (statusDiv) {
-      statusDiv.textContent = 'Data loaded (static snapshot)';
+    if (statusDiv && !statusDiv.querySelector('.error')) {
+      var okLine = document.createElement('div');
+      okLine.className = 'status-ok';
+      okLine.textContent = 'Data loaded (static snapshot)';
+      statusDiv.appendChild(okLine);
     }
 
   }).catch(function (err) {
