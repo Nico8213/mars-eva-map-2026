@@ -1,24 +1,35 @@
 # Reproduce
 
+Commands are for Windows PowerShell and are run from the repository root.
+
 ## Requirements
 
-TBD
+- Python 3 and a virtual environment in `.venv`.
+- Pinned packages are in `pipeline/requirements.txt` (data pipeline) and `routing/requirements.txt` (routing and tests). The shared packages have the same pins in both files. `scikit-image` is pinned to a release candidate (0.27.0rc1).
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r pipeline\requirements.txt -r routing\requirements.txt
+```
 
 ## Data download
 
-TBD
+The pipeline reads two public USGS files. They are not stored in the repository. Download them from the pages below and place them at the paths given in `pipeline/README.md`. Both are CC0 1.0; please cite Fergason et al. (2020).
+
+1. HiRISE DTM, `JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40.tif` (version 006, 1 m/px, about 1.84 GB per `pipeline/README.md`): https://doi.org/10.5066/P9REJ9JN
+2. CTX mosaic, `JEZ_ctx_B_soc_008_orthoMosaic_6m_Eqc_latTs0_lon0.tif` (version 008, 6 m/px): https://doi.org/10.5066/P9GV1ND3
+
+Already in the repository: the processed files in `data/processed/` (including `slope.npy` and the layer images), and the validation inputs in `validation/data/` (PLACES `best_interp.csv` and the MMGIS traverse snapshot). You can run routing, validation and the website without repeating the download.
 
 ## Pipeline
 
-TBD
+See `pipeline/README.md` for the steps, commands and outputs. The pipeline turns the two downloaded files into the processed files in `data/processed/`.
 
 ## Routing
 
 See routing/README.md for how routes are produced. Route GeoJSON coordinates are grid metres, not longitude/latitude.
 
 ## Validation
-
-Run these commands in Windows PowerShell from the repository root.
 
 Step 1, check the coordinate transform:
 
@@ -40,4 +51,10 @@ Note: this script was run once, after the parameters were locked (commit d1965fd
 
 ## Web preview
 
-TBD
+The website is static. To preview it locally, serve the `web/` folder:
+
+```powershell
+.\.venv\Scripts\python.exe -m http.server 8000 --directory web
+```
+
+Open http://localhost:8000/ . The status line should read "Data loaded (static snapshot)". The published site is deployed by the GitHub Actions workflow in `.github/workflows/`.
