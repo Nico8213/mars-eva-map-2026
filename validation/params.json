@@ -31,7 +31,7 @@
     },
     "confidence_layer": {
       "value": "not used in v1; state as a limitation in the report",
-      "basis": "Spec section 4.7 item 3: \"The HiRISE confidence layer (project plan §7.1) is not used in v1. Mention this as a limitation in the report.\""
+      "basis": "Spec section 4.7 item 3: \"The HiRISE confidence layer (project plan \u00a77.1) is not used in v1. Mention this as a limitation in the report.\""
     }
   },
   "cost_function": {
@@ -55,7 +55,7 @@
       "value": 8,
       "fully_connected": true,
       "geometric": true,
-      "basis": "Spec section 3, bullet 'Path search': \"`skimage.graph.route_through_array` with `fully_connected=True` and `geometric=True`\"; section 4.7 item 4: \"8-neighbour with geometric step lengths (diagonal = √2)\"; section 4.8: \"connectivity: `fully_connected=True`, `geometric=True`\". routing/config.json connectivity = 8."
+      "basis": "Spec section 3, bullet 'Path search': \"`skimage.graph.route_through_array` with `fully_connected=True` and `geometric=True`\"; section 4.7 item 4: \"8-neighbour with geometric step lengths (diagonal = \u221a2)\"; section 4.8: \"connectivity: `fully_connected=True`, `geometric=True`\". routing/config.json connectivity = 8."
     },
     "path_search_function": {
       "value": "skimage.graph.route_through_array",
@@ -101,7 +101,7 @@
     },
     "tolerance_floor_rule": {
       "value": "d_tol >= 2 x pixel size. If the pixel size read from grid.json breaks this, stop and tell Nico.",
-      "basis": "Spec section 4.5 Tolerance table, 'Floor rule': \"`d_tol` is at least 2 × pixel size\"."
+      "basis": "Spec section 4.5 Tolerance table, 'Floor rule': \"`d_tol` is at least 2 \u00d7 pixel size\"."
     }
   },
   "coordinate_system": {
@@ -115,7 +115,7 @@
     },
     "traverse_reprojection": {
       "value": "reproject rover latitude/longitude into that CRS. The 18.4663 degree easting/northing formula is NOT used for validation.",
-      "basis": "Spec section 4.3 item 3: \"The rover path (latitude/longitude) is reprojected into that CRS. The `18.4663°` easting/northing formula is **not** used for validation.\""
+      "basis": "Spec section 4.3 item 3: \"The rover path (latitude/longitude) is reprojected into that CRS. The `18.4663\u00b0` easting/northing formula is **not** used for validation.\""
     },
     "distance_formula": {
       "value": "planimetric Euclidean distance in the projected plane",
@@ -135,6 +135,36 @@
     "route_length_function": {
       "value": "the webpage route length and the validation route length come from the same function",
       "basis": "Spec section 4.3 item 7: \"Route length shown on the webpage and length used in validation come from the same function.\""
+    },
+    "crs_check": {
+      "projection": "Equirectangular",
+      "radius_m": 3396190.0,
+      "inverse_flattening": 0.0,
+      "expected_radius_m": 3396190.0,
+      "matches_spec": true,
+      "read_with": "regex on the SPHEROID and PROJECTION entries of grid.json crs_wkt (rasterio and pyproj not installed)",
+      "basis": "Spec section 4.3 'What the terrain file is', last bullet: read the CRS and radius from the grid file from grid.json crs_wkt and confirm they equal the spec values. Section 7 key crs.radius_m."
+    },
+    "haversine_check": {
+      "corner_a_top_left": {
+        "lat_deg": 18.500305287409148,
+        "lon_deg": 77.39558684708938
+      },
+      "corner_b_bottom_right": {
+        "lat_deg": 18.432822867976686,
+        "lon_deg": 77.46306926652183
+      },
+      "aeqd_centre": {
+        "lat_deg": 18.46656407769292,
+        "lon_deg": 77.4293280568056
+      },
+      "aeqd_definition": "spherical azimuthal equidistant, closed-form, same sphere, equivalent to +proj=aeqd +R=radius at aeqd_centre",
+      "haversine_distance_m": 5513.138537109409,
+      "aeqd_distance_m": 5513.138537109285,
+      "relative_difference": 2.2600697099155525e-14,
+      "max_relative_difference": 0.01,
+      "passed": true,
+      "basis": "Spec section 4.3 item 5, second check: \"the great-circle (haversine) distance on the sphere and the distance in the local projection differ by less than 1%\". Section 7 key crs.haversine_check_max_relative_difference = 0.01."
     }
   },
   "reference_path": {
@@ -146,19 +176,31 @@
     "snapshot_date": {
       "value": "2026-10-11",
       "last_sol_in_file": 1980,
-      "basis": "Spec section 4.2 table, 'Snapshot used': \"2026-10-11 snapshot, last sol 1980 [SOURCE: project plan §7.4; §7.6 says validation uses only this snapshot]\". New downloads never replace this snapshot."
+      "basis": "Spec section 4.2 table, 'Snapshot used': \"2026-10-11 snapshot, last sol 1980 [SOURCE: project plan \u00a77.4; \u00a77.6 says validation uses only this snapshot]\". New downloads never replace this snapshot."
     },
     "download_date": {
       "value": "2026-10-11 (tentative)",
-      "basis": "Spec section 4.2 table, 'Download date': \"2026-10-11 [SOURCE: project plan §7.4]. **[TBD-DATA]** confirm against the file's timestamp in `validation/data/`.\"",
+      "basis": "Spec section 4.2 table, 'Download date': \"2026-10-11 [SOURCE: project plan \u00a77.4]. **[TBD-DATA]** confirm against the file's timestamp in `validation/data/`.\"",
       "status": "needs confirmation against the real file; also listed under missing"
     },
     "cleaning": {
-      "remove_partial_segments": 5,
-      "remove_duplicate_segments": 1,
-      "expected_counts": { "points": 703, "segments": 556 },
+      "remove_partial_segments": "pending_nico_approval",
+      "remove_duplicate_segments": "pending_nico_approval",
+      "expected_counts": {
+        "points": 703,
+        "segments": 556
+      },
       "basis": "Spec section 4.2 table, 'Counts to re-check': \"703 points, 556 segments. Before computing any length, remove 5 partial segments and 1 duplicate segment\". Section 4.4 'Preparing the reference line' item 1.",
-      "status": "counts must be confirmed by the script; see missing"
+      "status": "pending_nico_approval; counts must be confirmed by the script; see missing",
+      "partial_duplicate_rule": {
+        "value": "pending_nico_approval",
+        "basis": "Spec section 4.2 'Counts to re-check' and section 4.4 'Preparing the reference line' item 1; section 7 key reference.partial_duplicate_rule. Left for Nico to approve."
+      },
+      "spec_stated_removals": {
+        "partial": 5,
+        "duplicate": 1,
+        "note": "Numbers as written in spec section 4.2; not adopted until Nico approves."
+      }
     },
     "ordering": {
       "value": "order everything by ascending sol; do not trust feature order in the file; the script must check that sol never decreases along the line",
@@ -166,7 +208,7 @@
     },
     "authoritative_citation": {
       "value": "PLACES, Release 15, sols 0-1762",
-      "basis": "Spec section 4.2 table, 'Authoritative citation': \"PLACES, Release 15, sols 0–1762\". Section 4.4 last paragraph: if the validation reference lies mostly at sols above 1762, say so in the report."
+      "basis": "Spec section 4.2 table, 'Authoritative citation': \"PLACES, Release 15, sols 0\u20131762\". Section 4.4 last paragraph: if the validation reference lies mostly at sols above 1762, say so in the report."
     },
     "source_page": {
       "value": "https://science.nasa.gov/mission/mars-2020-perseverance/location-map/",
@@ -288,13 +330,23 @@
       "basis": "Spec section 4.5 Tolerance table: \"Primary tolerance `d_tol` | 10 m\". Section 4.8: \"`d_tol` = 10 m\". Spec notes it is a design choice, not a measured accuracy."
     },
     "d_tol_sensitivity_m": {
-      "value": [5, 25],
+      "value": [
+        5,
+        25
+      ],
       "basis": "Spec section 4.5 Tolerance table: \"Sensitivity tolerances | 5 m and 25 m\", always reported next to 10 m."
     },
     "verdict_thresholds_M1": {
-      "close_match": { "min_inclusive": 0.80 },
-      "partial_match": { "min_inclusive": 0.50, "max_exclusive": 0.80 },
-      "weak_match": { "max_exclusive": 0.50 },
+      "close_match": {
+        "min_inclusive": 0.8
+      },
+      "partial_match": {
+        "min_inclusive": 0.5,
+        "max_exclusive": 0.8
+      },
+      "weak_match": {
+        "max_exclusive": 0.5
+      },
       "evaluated_at_d_tol_m": 10,
       "note": "M0, M2 and M3 have no pass/fail gate.",
       "basis": "Spec section 4.5 verdict table: \"at least 0.80 | close match\"; \"at least 0.50 and below 0.80 | partial match\"; \"below 0.50 | weak match\". Text: \"Verdict labels use M1 at `d_tol` = 10 m.\" Section 4.8: \"verdict thresholds on M1: 0.80 and 0.50\"."
@@ -341,5 +393,17 @@
       "parameter": "Austin's item 10",
       "detail": "Spec section 6: \"**[TBD, ask Austin]** (his message said 10 items but numbered only 9).\" Still open."
     }
-  ]
+  ],
+  "terrain_integrity": {
+    "sha256_slope_npy": {
+      "value": "1A7E0A2EA8E897BA3654D8407EE99019E0420A61824BC57F053E6C505889F49A",
+      "file": "data/processed/slope.npy",
+      "basis": "Spec section 4.3, 'Known limitation of the slope data': \"`params.json` records the SHA-256 of `slope.npy` and `grid.json`\". Section 7 key sha256_slope_npy. Computed by validation/fill_params.py."
+    },
+    "sha256_grid_json": {
+      "value": "667D2096F77E70F34A21AF1671A125FF9DE82D92C7269DAB3A39067DBCC0C152",
+      "file": "data/processed/grid.json",
+      "basis": "Spec section 4.3, 'Known limitation of the slope data': \"`params.json` records the SHA-256 of `slope.npy` and `grid.json`\". Section 7 key sha256_grid_json. Computed by validation/fill_params.py."
+    }
+  }
 }
