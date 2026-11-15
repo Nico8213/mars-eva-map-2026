@@ -7,5 +7,6 @@
   "north": 1096600.0
 },
   "cropped_dtm": "data/raw/cropped_dtm.tif",
+  "source_ctx": "../local_only/ctx_raw/JEZ_ctx_6m.tif",
   "slope_colormap_max_deg": 45
 }

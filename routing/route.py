@@ -11,7 +11,7 @@ import re
 import subprocess
 import sys
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 import numpy as np
@@ -56,11 +56,12 @@ class CostParams:
 @dataclass(frozen=True)
 class Grid:
     pixel_size_m: float
-    width: int
-    height: int
-    easting_m: float  # top_left.easting_m
-    northing_m: float  # top_left.northing_m
+    width: int | None  # None when grid.json omits it; filled from the slope shape
+    height: int | None
+    easting_m: float  # top-left corner easting (top_left_x_m or top_left.easting_m)
+    northing_m: float  # top-left corner northing (top_left_y_m or top_left.northing_m)
     crs: str
+    nodata_value: float | None = None  # explicit nodata declared by grid.json, if any
 
 
 def _has_valid_date(basis: str) -> bool:
@@ -148,15 +149,27 @@ def load_config(path: Path) -> tuple[CostParams, dict]:
     return params, raw
 
 
-_GRID_FIELDS = ("pixel_size_m", "width", "height", "top_left", "crs")
+DEFAULT_PIXEL_SIZE_M = 1.0
+DEFAULT_CRS = "unknown"
+MAX_SLOPE_DEG = 90.0  # a slope outside [0, 90] degrees is a sentinel, not terrain
+_CHUNK_ROWS = 1024
 
 
 def _is_number(v: object) -> bool:
     return not isinstance(v, bool) and isinstance(v, (int, float))
 
 
+def _warn(message: str) -> None:
+    print(f"warning: {message}", file=sys.stderr)
+
+
 def load_grid(path: Path) -> Grid:
-    """Read and validate grid.json. Raises RoutingError (exit code 2)."""
+    """Read grid.json. Missing fields get defaults and a warning on stderr.
+
+    Real-file names are read first (top_left_x_m, top_left_y_m, crs_wkt); the older
+    names (top_left.easting_m, top_left.northing_m, crs) are accepted as a fallback.
+    A field that is present but has the wrong type raises RoutingError (exit code 2).
+    """
     path = Path(path)
 
     def fail(detail: str) -> RoutingError:
@@ -175,51 +188,92 @@ def load_grid(path: Path) -> Grid:
     if not isinstance(raw, dict):
         raise fail("top level must be a JSON object")
 
-    missing = [k for k in _GRID_FIELDS if k not in raw]
-    if missing:
-        raise fail("missing required field(s): " + ", ".join(missing))
-
-    px = raw["pixel_size_m"]
-    if not _is_number(px) or not math.isfinite(px) or px <= 0:
-        raise fail(f"field 'pixel_size_m' must be a number greater than 0 (rejected value: {px!r})")
-    for key in ("width", "height"):
-        v = raw[key]
-        if isinstance(v, bool) or not isinstance(v, int) or v <= 0:
-            raise fail(f"field '{key}' must be an integer greater than 0 (rejected value: {v!r})")
-
-    tl = raw["top_left"]
-    if not isinstance(tl, dict):
-        raise fail(f"field 'top_left' must be an object (rejected value: {tl!r})")
-    for key in ("easting_m", "northing_m"):
-        if key not in tl:
-            raise fail(f"missing required field(s): top_left.{key}")
-        v = tl[key]
+    def finite_number(key: str, v: object) -> float:
         if not _is_number(v) or not math.isfinite(v):
-            raise fail(f"field 'top_left.{key}' must be a finite number (rejected value: {v!r})")
+            raise fail(f"field '{key}' must be a finite number (rejected value: {v!r})")
+        return float(v)
 
-    crs = raw["crs"]
-    if not isinstance(crs, str) or not crs.strip():
-        raise fail(f"field 'crs' must be a non-empty string (rejected value: {crs!r})")
+    # pixel size
+    if "pixel_size_m" in raw:
+        px = finite_number("pixel_size_m", raw["pixel_size_m"])
+        if px <= 0:
+            raise fail(f"field 'pixel_size_m' must be a number greater than 0 (rejected value: {px!r})")
+    else:
+        px = DEFAULT_PIXEL_SIZE_M
+        _warn(f"grid file {path}: 'pixel_size_m' missing, using default {px}")
+
+    # width and height (None means: take from the slope array shape)
+    dims: dict[str, int | None] = {}
+    for key in ("width", "height"):
+        if key in raw:
+            v = raw[key]
+            if isinstance(v, bool) or not isinstance(v, int) or v <= 0:
+                raise fail(f"field '{key}' must be an integer greater than 0 (rejected value: {v!r})")
+            dims[key] = v
+        else:
+            dims[key] = None
+            _warn(f"grid file {path}: '{key}' missing, will use the slope array shape")
+
+    # top-left corner
+    easting: float | None = None
+    northing: float | None = None
+    if "top_left_x_m" in raw or "top_left_y_m" in raw:
+        if "top_left_x_m" in raw:
+            easting = finite_number("top_left_x_m", raw["top_left_x_m"])
+        if "top_left_y_m" in raw:
+            northing = finite_number("top_left_y_m", raw["top_left_y_m"])
+    tl = raw.get("top_left")
+    if isinstance(tl, dict):
+        if easting is None and "easting_m" in tl:
+            easting = finite_number("top_left.easting_m", tl["easting_m"])
+        if northing is None and "northing_m" in tl:
+            northing = finite_number("top_left.northing_m", tl["northing_m"])
+    elif tl is not None:
+        raise fail(f"field 'top_left' must be an object (rejected value: {tl!r})")
+    if easting is None:
+        easting = 0.0
+        _warn(f"grid file {path}: top-left easting missing, using default {easting}")
+    if northing is None:
+        northing = (dims["height"] or 0) * px
+        _warn(f"grid file {path}: top-left northing missing, using default {northing}")
+
+    # CRS: only carried into the object, never used in the computation
+    crs = DEFAULT_CRS
+    for key in ("crs_wkt", "crs"):
+        v = raw.get(key)
+        if isinstance(v, str) and v.strip():
+            crs = v
+            break
+    else:
+        _warn(f"grid file {path}: 'crs_wkt' and 'crs' missing, using {DEFAULT_CRS!r}")
+
+    # optional explicit nodata value
+    nodata = raw.get("nodata_value")
+    nodata_value = float(nodata) if _is_number(nodata) and math.isfinite(nodata) else None
 
     return Grid(
-        pixel_size_m=float(px),
-        width=raw["width"],
-        height=raw["height"],
-        easting_m=float(tl["easting_m"]),
-        northing_m=float(tl["northing_m"]),
+        pixel_size_m=px,
+        width=dims["width"],
+        height=dims["height"],
+        easting_m=easting,
+        northing_m=northing,
         crs=crs,
+        nodata_value=nodata_value,
     )
 
 
 def load_slope(path: Path, grid: Grid) -> np.ndarray:
-    """Read slope.npy and check it is 2D with shape (height, width)."""
+    """Open slope.npy as a read-only memory map; check it is 2D and matches the grid.
+
+    If grid.width or grid.height is None, that dimension is not checked.
+    """
     path = Path(path)
 
     def fail(detail: str) -> RoutingError:
         return RoutingError(f"slope file {path}: {detail}", 2)
 
     try:
-        arr = np.load(path, allow_pickle=False)
+        arr = np.load(path, mmap_mode="r", allow_pickle=False)
     except FileNotFoundError:
         raise fail("file not found") from None
     except Exception as exc:  # invalid NumPy file, pickled object, unreadable
@@ -228,20 +282,40 @@ def load_slope(path: Path, grid: Grid) -> np.ndarray:
         raise fail("not a single NumPy array")
     if arr.ndim != 2:
         raise fail(f"slope array must have 2 dimensions, found {arr.ndim}")
-    expected = (grid.height, grid.width)
-    if arr.shape != expected:
+    if arr.dtype.kind not in "fiu":
+        raise fail(f"slope array must be numeric, found dtype {arr.dtype}")
+    if (grid.height is not None and arr.shape[0] != grid.height) or (
+        grid.width is not None and arr.shape[1] != grid.width
+    ):
+        expected = (grid.height, grid.width)
         raise fail(f"slope array shape {arr.shape} does not match grid (height, width) {expected}")
     return arr
 
 
-def build_cost_raster(slope: np.ndarray, p: CostParams) -> np.ndarray:
-    """Per-pixel traversal cost (float64). NaN and slopes above the limit are np.inf."""
-    s = np.abs(np.asarray(slope, dtype=np.float64))
-    cost = np.full(s.shape, np.inf, dtype=np.float64)
-    ok = s <= p.slope_limit_deg  # False for NaN
-    cost[ok] = p.cost_base + p.cost_coefficient * (s[ok] / p.slope_limit_deg) ** p.cost_exponent
-    return cost
+def invalid_slope_mask(s: np.ndarray, nodata_value: float | None = None) -> np.ndarray:
+    """True where a slope value is missing: NaN, inf, outside [0, 90] degrees, or the declared nodata.
 
+    0 is a valid slope (flat ground) and is never treated as missing.
+    """
+    bad = ~np.isfinite(s) | (s < 0) | (s > MAX_SLOPE_DEG)
+    if nodata_value is not None:
+        bad |= s == nodata_value
+    return bad
+
+def build_cost_raster(
+    slope: np.ndarray, p: CostParams, nodata_value: float | None = None
+) -> np.ndarray:
+    """Per-pixel traversal cost (float64). Missing slopes and slopes above the limit are np.inf.
+
+    Works in row chunks so a memory-mapped slope array is never converted whole.
+    """
+    cost = np.full(slope.shape, np.inf, dtype=np.float64)
+    for r0 in range(0, slope.shape[0], _CHUNK_ROWS):
+        s = np.asarray(slope[r0 : r0 + _CHUNK_ROWS], dtype=np.float64)
+        ok = ~invalid_slope_mask(s, nodata_value) & (s <= p.slope_limit_deg)
+        block = cost[r0 : r0 + _CHUNK_ROWS]
+        block[ok] = p.cost_base + p.cost_coefficient * (s[ok] / p.slope_limit_deg) ** p.cost_exponent
+    return cost
 
 def coord_to_pixel(easting_m: float, northing_m: float, g: Grid) -> tuple[int, int]:
     """Map a map coordinate to (row, col). The result may lie outside the grid."""
@@ -479,6 +553,8 @@ def main(argv: list[str] | None = None) -> int:
         params, raw_config = load_config(args.config)
         grid = load_grid(args.grid)
         slope = load_slope(args.slope, grid)
+        if grid.width is None or grid.height is None:
+            grid = replace(grid, width=slope.shape[1], height=slope.shape[0])
         start_spec = (
             EndpointSpec("pixel", *args.start_rc)
             if args.start_rc is not None
@@ -491,7 +567,7 @@ def main(argv: list[str] | None = None) -> int:
         )
         start = resolve_endpoint("start", start_spec, grid)
         end = resolve_endpoint("end", end_spec, grid)
-        cost = build_cost_raster(slope, params)
+        cost = build_cost_raster(slope, params, grid.nodata_value)
         path, _ = find_path(cost, start, end, params.connectivity)
         feature = build_feature(
             args.name, path, slope, grid, params, raw_config,

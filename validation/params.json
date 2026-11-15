@@ -1,0 +1,345 @@
+{
+  "_meta": {
+    "purpose": "Locked parameters for the Perseverance traverse validation. Per spec section 4.1, commit before the first validation run and do not change afterwards.",
+    "spec_file": "docs/research/nico-routing-spec.md",
+    "spec_version": "v1.0 (14 Nov 2026)",
+    "config_file": "routing/config.json",
+    "citation_format": "Section number and heading, bullet or row, then quoted original text.",
+    "lock_status": "NOT READY TO LOCK. Spec section 6: \"All **[TBD-DATA]** values in 4.2, 4.3 and 4.4 must be filled from the real files before `validation/params.json` is locked.\" See the missing list."
+  },
+  "slope": {
+    "slope_limit_deg": {
+      "value": 20,
+      "basis": "Spec section 2 (Cost function), bullet 'Cost per cell': \"with `limit = 20` degrees\"; bullet 'Cells steeper than 20 degrees are blocked'; section 4.8: \"slope limit: 20 degrees\". Also routing/config.json slope_limit_deg = 20.",
+      "note": "Spec says this is a rover reference, not a human or spacesuit limit, and is a team choice."
+    },
+    "blocked_rule": {
+      "value": "slope > 20 degrees: cost = infinity, never entered. A cell at exactly 20 degrees is not blocked (cost 2).",
+      "basis": "Spec section 2, bullet: \"Cells steeper than 20 degrees are blocked (cost = infinity, never entered).\" Section 4.7 item 2: \"A cell is blocked if its slope is above the limit in section 2, or its slope is NaN or nodata\". The 'exactly 20 is allowed' reading follows from 'steeper than' / 'above' and from \"a cell at the limit costs 2\"."
+    },
+    "nodata_rule": {
+      "value": "NaN or invalid cells are blocked",
+      "basis": "Spec section 2, bullet: \"Cells with no data (NaN or invalid) are blocked.\" Section 4.8: \"NaN or nodata is blocked\"."
+    },
+    "slope_sign": {
+      "value": "unsigned magnitude; uphill and downhill not distinguished",
+      "basis": "Spec section 2, bullet 'Input': \"Slope is treated as an unsigned magnitude; uphill and downhill are not distinguished.\""
+    },
+    "slope_input_file": {
+      "value": "data/processed/slope.npy",
+      "basis": "Spec section 2, bullet 'Input': \"`data/processed/slope.npy` (2D array, slope in degrees, same size as `grid.json`)\""
+    },
+    "confidence_layer": {
+      "value": "not used in v1; state as a limitation in the report",
+      "basis": "Spec section 4.7 item 3: \"The HiRISE confidence layer (project plan §7.1) is not used in v1. Mention this as a limitation in the report.\""
+    }
+  },
+  "cost_function": {
+    "formula": {
+      "value": "cost = cost_base + cost_coefficient * (slope / slope_limit_deg) ^ cost_exponent",
+      "basis": "Spec section 2, bullet 'Cost per cell': \"`cost = 1 + (slope / limit)^2`\"; section 4.8: \"cost formula: `1 + (slope / limit)^2`\". Generalized form with named terms is from routing/config.json cost_function.basis."
+    },
+    "cost_base": {
+      "value": 1.0,
+      "basis": "Spec section 2: \"A flat cell costs 1\". routing/config.json cost_base = 1.0."
+    },
+    "cost_coefficient": {
+      "value": 1.0,
+      "basis": "Spec section 2: \"`cost = 1 + (slope / limit)^2`\" (coefficient is implicitly 1; \"a cell at the limit costs 2\"). routing/config.json cost_coefficient = 1.0."
+    },
+    "cost_exponent": {
+      "value": 2.0,
+      "basis": "Spec section 2: \"`cost = 1 + (slope / limit)^2`\". routing/config.json cost_exponent = 2.0."
+    },
+    "connectivity": {
+      "value": 8,
+      "fully_connected": true,
+      "geometric": true,
+      "basis": "Spec section 3, bullet 'Path search': \"`skimage.graph.route_through_array` with `fully_connected=True` and `geometric=True`\"; section 4.7 item 4: \"8-neighbour with geometric step lengths (diagonal = √2)\"; section 4.8: \"connectivity: `fully_connected=True`, `geometric=True`\". routing/config.json connectivity = 8."
+    },
+    "path_search_function": {
+      "value": "skimage.graph.route_through_array",
+      "basis": "Spec section 3, bullet 'Path search'."
+    },
+    "blocked_value": {
+      "value": "np.inf (not a large finite number such as 1e9)",
+      "basis": "Spec section 4.7 item 1: \"Blocked means `cost = np.inf`. Do **not** use a large finite number such as 1e9\"; section 4.8: \"blocked cells: `np.inf`\"."
+    },
+    "infinite_cost_detection": {
+      "value": "After every run, assert total route cost is finite and no route cell is blocked. A run that fails this is reported as invalid with the reason.",
+      "basis": "Spec section 4.7 item 5: \"after every run, assert that the total cost is finite and that no route cell is blocked.\" Section 4.5 'Run is valid': \"total route cost is finite\"; \"no route cell is blocked (4.7)\"."
+    },
+    "corner_cutting": {
+      "value": "known limitation; stated in routing/README.md",
+      "basis": "Spec section 4.7 item 4: \"Corner-cutting between two blocked neighbours is a known limitation of this method and is stated in `routing/README.md`.\""
+    },
+    "required_tests": {
+      "value": [
+        "a wall of blocked cells across the grid gives 'unreachable'",
+        "a grid with one open gap routes through the gap",
+        "after every run, total cost is finite and no route cell is blocked"
+      ],
+      "basis": "Spec section 4.7 item 5: \"Required tests (Austin)\"."
+    }
+  },
+  "grid": {
+    "pixel_size_and_extent": {
+      "value": "read from grid.json at run time; do not hard-code",
+      "basis": "Spec section 4.8: \"pixel size and grid extent: read from `grid.json`\"."
+    },
+    "extent_definition": {
+      "value": "rectangular bounds of grid.json, in the projected CRS of section 4.3. A traverse point is 'inside' if it lies within those bounds.",
+      "basis": "Spec section 4.4, 'Definitions': \"**Extent** = the rectangular bounds of `grid.json`, in the CRS of 4.3. A traverse point is \\\"inside\\\" if it lies within those bounds.\""
+    },
+    "terrain_resampling": {
+      "value": "none; slope.npy and grid.json used at stored resolution",
+      "basis": "Spec section 4.5 'Resampling' item 1: \"Terrain: not resampled.\""
+    },
+    "coarsening_rule_if_ever_used": {
+      "value": "compute slope at native resolution, then coarsen the slope (not elevation) with the maximum per block. Continuous layers: bilinear. Masks and categories: nearest neighbour.",
+      "basis": "Spec section 4.5 'Resampling' item 2: \"coarsen the **slope** (not the elevation) with the **maximum** per block.\""
+    },
+    "tolerance_floor_rule": {
+      "value": "d_tol >= 2 x pixel size. If the pixel size read from grid.json breaks this, stop and tell Nico.",
+      "basis": "Spec section 4.5 Tolerance table, 'Floor rule': \"`d_tol` is at least 2 × pixel size\"."
+    }
+  },
+  "coordinate_system": {
+    "distance_units": {
+      "value": "metres, computed in a projected metre CRS, never in degrees",
+      "basis": "Spec section 4.3 item 1: \"**All distances are computed in a projected metre CRS, never in degrees.**\""
+    },
+    "crs_source": {
+      "value": "the CRS stored in the HiRISE DTM file (read with rasterio/pyproj), or in grid.json if it carries the same information. Planet radius and projection parameters are read from the same place, not hard-coded.",
+      "basis": "Spec section 4.3 item 2: \"The CRS is the one stored in the HiRISE DTM file (read with `rasterio`/`pyproj`), or in `grid.json` if it carries the same information.\"; \"Do not hard-code them.\""
+    },
+    "traverse_reprojection": {
+      "value": "reproject rover latitude/longitude into that CRS. The 18.4663 degree easting/northing formula is NOT used for validation.",
+      "basis": "Spec section 4.3 item 3: \"The rover path (latitude/longitude) is reprojected into that CRS. The `18.4663°` easting/northing formula is **not** used for validation.\""
+    },
+    "distance_formula": {
+      "value": "planimetric Euclidean distance in the projected plane",
+      "basis": "Spec section 4.3 item 5: \"Distance = planimetric Euclidean distance in the projected plane.\""
+    },
+    "consistency_check": {
+      "value": {
+        "max_offset_m": 5,
+        "rule": "Before validation, project the first waypoint with both methods and print the offset in metres. If the offset is larger than d_tol / 2 = 5 m, stop and tell Nico. Do not fix the formula."
+      },
+      "basis": "Spec section 4.3 item 4: \"If the offset is larger than `d_tol / 2` = 5 m, stop and tell Nico. Do not \\\"fix\\\" the formula.\" Section 7 key: \"consistency_check_max_offset_m\": 5."
+    },
+    "height_reference": {
+      "value": "elev_geoid does not matter for planimetric distance. Any 3D surface length is reported separately with its method stated.",
+      "basis": "Spec section 4.3 item 6."
+    },
+    "route_length_function": {
+      "value": "the webpage route length and the validation route length come from the same function",
+      "basis": "Spec section 4.3 item 7: \"Route length shown on the webpage and length used in validation come from the same function.\""
+    }
+  },
+  "reference_path": {
+    "files": {
+      "traverse_file": "M20_traverse.json",
+      "waypoints_file": "M20_waypoints.json",
+      "basis": "Spec section 4.2 table, 'Files': \"`M20_traverse.json` (line segments), `M20_waypoints.json` (points)\". Section 7 key 'reference'."
+    },
+    "snapshot_date": {
+      "value": "2026-10-11",
+      "last_sol_in_file": 1980,
+      "basis": "Spec section 4.2 table, 'Snapshot used': \"2026-10-11 snapshot, last sol 1980 [SOURCE: project plan §7.4; §7.6 says validation uses only this snapshot]\". New downloads never replace this snapshot."
+    },
+    "download_date": {
+      "value": "2026-10-11 (tentative)",
+      "basis": "Spec section 4.2 table, 'Download date': \"2026-10-11 [SOURCE: project plan §7.4]. **[TBD-DATA]** confirm against the file's timestamp in `validation/data/`.\"",
+      "status": "needs confirmation against the real file; also listed under missing"
+    },
+    "cleaning": {
+      "remove_partial_segments": 5,
+      "remove_duplicate_segments": 1,
+      "expected_counts": { "points": 703, "segments": 556 },
+      "basis": "Spec section 4.2 table, 'Counts to re-check': \"703 points, 556 segments. Before computing any length, remove 5 partial segments and 1 duplicate segment\". Section 4.4 'Preparing the reference line' item 1.",
+      "status": "counts must be confirmed by the script; see missing"
+    },
+    "ordering": {
+      "value": "order everything by ascending sol; do not trust feature order in the file; the script must check that sol never decreases along the line",
+      "basis": "Spec section 4.4 'Preparing the reference line' item 2: \"Order everything by **ascending sol**. Do not trust the order of features in the file.\""
+    },
+    "authoritative_citation": {
+      "value": "PLACES, Release 15, sols 0-1762",
+      "basis": "Spec section 4.2 table, 'Authoritative citation': \"PLACES, Release 15, sols 0–1762\". Section 4.4 last paragraph: if the validation reference lies mostly at sols above 1762, say so in the report."
+    },
+    "source_page": {
+      "value": "https://science.nasa.gov/mission/mars-2020-perseverance/location-map/",
+      "basis": "Spec section 4.2 table, 'Source': \"Official page: https://science.nasa.gov/mission/mars-2020-perseverance/location-map/\"."
+    },
+    "unverified_candidate_urls": {
+      "value": [
+        "https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_traverse.json",
+        "https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_waypoints.json"
+      ],
+      "basis": "Spec section 4.2 table, 'Source': \"found on third-party pages, not on an official NASA document... They must be checked before use.\"",
+      "status": "unverified; do not use until checked"
+    },
+    "local_directory": {
+      "value": "validation/data/",
+      "basis": "Spec section 4.2 table, 'Source': \"the small files go in `validation/data/`\"."
+    }
+  },
+  "validation_route": {
+    "landing_site": {
+      "value": "the point with the smallest sol in M20_waypoints.json. Expected sol 0 (touchdown, 'Octavia E. Butler Landing'). If the smallest sol is not 0, stop and ask Nico.",
+      "basis": "Spec section 4.4 'Definitions': \"**Landing site** = the point with the smallest sol in `M20_waypoints.json`. It should be sol 0\"; \"If the smallest sol is not 0, stop and ask Nico.\""
+    },
+    "reference_run": {
+      "value": "the first uninterrupted run of the ordered traverse that is inside the extent, starting at the landing site. If the landing site is outside the extent, stop and ask Nico.",
+      "basis": "Spec section 4.4 'Definitions': \"**Validation reference** = the first uninterrupted run of the ordered traverse that is inside the extent, starting at the landing site.\""
+    },
+    "first_path_point": {
+      "value": "the landing site",
+      "basis": "Spec section 4.4 'Definitions': \"**First path point** = the landing site.\""
+    },
+    "last_path_point": {
+      "value": "the last vertex of the validation reference before the traverse first leaves the extent (largest sol in the run; ties broken by the farther point along the path, e.g. larger dist_total). A real rover position; no boundary-intersection point is created.",
+      "basis": "Spec section 4.4 'Definitions': \"**Last path point** = the last vertex of the validation reference before the traverse first leaves the extent... No boundary-intersection point is created.\""
+    },
+    "clipping_method": {
+      "value": "by the rule above only: take the first in-extent run from the landing site; no geometric line clipping, no hand-drawn cuts, terrain not cropped here",
+      "basis": "Spec section 4.4: \"The traverse is clipped by this rule only. No hand-drawn cuts. The terrain is not cropped here\"."
+    },
+    "leave_and_reenter": {
+      "value": "Points after re-entry are not compared. The report states their number of points and length.",
+      "basis": "Spec section 4.4: \"Any part of the traverse that is inside the extent but after re-entry is **not compared**. The report states its number of points and length.\""
+    },
+    "endpoint_cells": {
+      "value": "start and end cells are the grid cells containing the first and last path points",
+      "basis": "Spec section 4.6 item 1: \"The start and end cells are the grid cells containing the first and last path points of 4.4.\""
+    },
+    "snap": {
+      "r_snap_cells": 3,
+      "value": "If a start or end cell is blocked, move it to the nearest unblocked cell within r_snap = 3 cells. Mark the run 'snapped' and store the snap distance. r_snap = 0 turns snapping off.",
+      "basis": "Spec section 4.6 item 2: \"move it to the nearest unblocked cell within `r_snap` = 3 cells. The run is marked `snapped` and the snap distance is stored.\" Section 4.8: \"`r_snap` = 3 cells\"."
+    },
+    "unreachable_rule": {
+      "unreachable_endpoint": "no unblocked cell within r_snap of a blocked start or end cell",
+      "unreachable": "both ends fine but no path of finite cost exists",
+      "metrics_on_unreachable": "null; the run counts as failed in the summary table and is never removed from the report",
+      "no_retry_with_higher_limit": "The program must not retry with a higher slope limit. Any relaxed-limit run must be declared in this file in advance and labelled 'relaxed limit' in every table. No relaxed-limit run is declared in v1.0.",
+      "basis": "Spec section 4.6 items 3-6: \"If no unblocked cell exists within `r_snap`, the status is `unreachable_endpoint`.\"; \"If both ends are fine but no path of finite cost exists, the status is `unreachable`.\"; \"The program must not retry with a higher slope limit.\" POI routes follow section 3 instead (no fallback endpoint)."
+    },
+    "blocked_reference_diagnostic": {
+      "value": "always record the share of reference-path points that fall in cells our rule blocks, and report it",
+      "basis": "Spec section 4.6 item 7: \"Always record this diagnostic: the share of reference-path points that fall in cells our rule blocks.\""
+    },
+    "run_valid_gate": {
+      "value": [
+        "status is 'ok' or 'snapped'",
+        "total route cost is finite",
+        "no route cell is blocked",
+        "snap distance at start and end is at most r_snap"
+      ],
+      "on_fail": "report the run as 'invalid' with the reason; never silently drop it",
+      "basis": "Spec section 4.5 'Run is valid (technical gate)'."
+    }
+  },
+  "comparison": {
+    "compared_segment": {
+      "value": "the validation reference of 4.4: the first uninterrupted run of the Perseverance traverse inside the extent of grid.json, starting at the landing site. Parts outside the grid and parts after re-entry are not compared.",
+      "basis": "Spec section 4.9: \"Comparison segment: the validation reference of 4.4... Parts of the traverse outside the grid, and parts after re-entry, are not compared.\""
+    },
+    "line_resampling": {
+      "value": "both lines converted to equally spaced points along their length, spacing = one grid pixel (from grid.json), by linear interpolation in the projected metre coordinates. Never interpolate in degrees. Method and spacing written into report.json.",
+      "basis": "Spec section 4.5 'Resampling' items 3-4: \"spacing = one grid pixel (from `grid.json`), by linear interpolation in the projected metre coordinates of 4.3. Never interpolate in degrees.\"; \"The method and spacing are written into `report.json`.\""
+    },
+    "metrics": {
+      "M0_mean_max_distance": {
+        "definition": "For each sample on our route, the distance to the nearest sample on the validation reference. Report the mean and the maximum, in metres.",
+        "direction": "from our route to the reference",
+        "basis": "Spec section 4.5 metrics table, M0: \"For each sample on our route, the distance to the nearest sample on the validation reference. Report the mean and the maximum, in metres.\""
+      },
+      "M1_buffer_overlap": {
+        "definition": "overlap_ref = share of reference length within d_tol of our route; overlap_route = share of our route length within d_tol of the reference; M1 = min(overlap_ref, overlap_route). Primary metric for the verdict.",
+        "basis": "Spec section 4.5 metrics table, M1: \"**M1 = min(overlap_ref, overlap_route).**\""
+      },
+      "M2_spread": {
+        "definition": "Median and 95th percentile of the same distances as M0. Report only.",
+        "basis": "Spec section 4.5 metrics table, M2."
+      },
+      "M3_dtw": {
+        "definition": "Dynamic time warping distance between the two sample sequences, divided by the number of points on the warping path, in metres. Report only.",
+        "basis": "Spec section 4.5 metrics table, M3."
+      },
+      "end_point_error_m": {
+        "definition": "distance between our route's first/last point and the reference's first/last point. Information only.",
+        "basis": "Spec section 4.5, after the verdict table: \"Also report `end_point_error_m`\"."
+      },
+      "computed_by": {
+        "value": "code only, never typed by hand",
+        "basis": "Spec section 4.1 rule 4: \"Every number in the report is computed by the program. No hand-typed validation numbers.\""
+      }
+    },
+    "reporting": {
+      "value": "Report every declared tolerance and metric, including bad results. No cherry-picking. The comparison is a sanity check, not ground truth; the rover traverse is not the optimal route for a person on foot.",
+      "basis": "Spec section 4.1 rule 3: \"Every declared tolerance and metric is reported, including bad results.\"; section 4.9 'Caveat'."
+    }
+  },
+  "tolerance": {
+    "d_tol_primary_m": {
+      "value": 10,
+      "basis": "Spec section 4.5 Tolerance table: \"Primary tolerance `d_tol` | 10 m\". Section 4.8: \"`d_tol` = 10 m\". Spec notes it is a design choice, not a measured accuracy."
+    },
+    "d_tol_sensitivity_m": {
+      "value": [5, 25],
+      "basis": "Spec section 4.5 Tolerance table: \"Sensitivity tolerances | 5 m and 25 m\", always reported next to 10 m."
+    },
+    "verdict_thresholds_M1": {
+      "close_match": { "min_inclusive": 0.80 },
+      "partial_match": { "min_inclusive": 0.50, "max_exclusive": 0.80 },
+      "weak_match": { "max_exclusive": 0.50 },
+      "evaluated_at_d_tol_m": 10,
+      "note": "M0, M2 and M3 have no pass/fail gate.",
+      "basis": "Spec section 4.5 verdict table: \"at least 0.80 | close match\"; \"at least 0.50 and below 0.80 | partial match\"; \"below 0.50 | weak match\". Text: \"Verdict labels use M1 at `d_tol` = 10 m.\" Section 4.8: \"verdict thresholds on M1: 0.80 and 0.50\"."
+    }
+  },
+  "missing": [
+    {
+      "parameter": "SHA-256 of M20_traverse.json and M20_waypoints.json",
+      "detail": "Spec section 4.2 'Integrity': [TBD-DATA]. Must be computed from the real files (certutil -hashfile <file> SHA256) and written here and in docs/CITATIONS.md. Not invented."
+    },
+    {
+      "parameter": "final traverse source link and the files in validation/data/",
+      "detail": "Spec section 4.2 'Source': VN provides the final source link. The direct JSON URLs are third-party and unverified."
+    },
+    {
+      "parameter": "download date confirmation",
+      "detail": "Spec says 2026-10-11 but marks it [TBD-DATA]: confirm against the file's timestamp in validation/data/."
+    },
+    {
+      "parameter": "confirmed counts of points and segments",
+      "detail": "Spec section 4.2 expects 703 points and 556 segments (before removing 5 partial and 1 duplicate segments). [TBD-DATA]: the script must print the counts and they must match."
+    },
+    {
+      "parameter": "traverse data licence",
+      "detail": "Spec section 4.2 'Licence': [TBD-DATA] record what NASA states for this data in docs/CITATIONS.md."
+    },
+    {
+      "parameter": "which file carries sol and dist_total, and the exact field names",
+      "detail": "Spec section 4.4 item 2: [TBD-DATA] the field names were only seen on third-party pages. Needs the real file."
+    },
+    {
+      "parameter": "CRS string and planet radius",
+      "detail": "Spec section 4.3 item 2: the rule for where to read them is given (HiRISE DTM metadata or grid.json), but the values are [TBD-DATA] and not written in the spec. Needs the real file."
+    },
+    {
+      "parameter": "landing site sol, index and coordinates",
+      "detail": "Spec section 4.4: the definition is given, but the script must print sol, index and coordinates and they must be copied here. [TBD-DATA]."
+    },
+    {
+      "parameter": "how the route line is built from the cell path",
+      "detail": "Spec section 4.5 says both lines are converted to equally spaced points by linear interpolation, but does not say whether the route polyline uses cell centres or cell corners, or whether the exact first and last vertex are always kept after resampling."
+    },
+    {
+      "parameter": "Austin's item 10",
+      "detail": "Spec section 6: \"**[TBD, ask Austin]** (his message said 10 items but numbered only 9).\" Still open."
+    }
+  ]
+}

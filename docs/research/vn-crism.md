@@ -44,14 +44,14 @@
 - Confidence: high that coverage exists; low on exactly which areas are covered (needs a coverage map check)
 
 # Research card: CRISM license and citation rules
-- Finding: PDS data sets are classified TSPA (Technology and Software Publicly Available) and may be exported as public open literature. JPL-supplied documents, images and data in the PDS may be used by any person for any purpose without prior permission, subject to the JPL policy. The PDS Geosciences Node metadata for a CRISM DDR coverage file states there are no access or use limits and points to its citations page. Citations should name "NASA Planetary Data System" as the publisher; PDS4 citation guidance is on the PDS site.
-- Source URL: https://pds-geosciences.wustl.edu/jplcopyright.html (JPL policy); https://pds-geosciences.wustl.edu/geocopy/test/ddr/mars_mro_crism_ddr_na.shp.xml (use limit statement); https://pds.nasa.gov/datastandards/citing (how to cite); https://search-pdsppi.igpp.ucla.edu/faq.jsp (TSPA statement)
-- Organization / author: NASA PDS Geosciences Node; PDS Planetary Plasma Interactions Node (FAQ)
-- Version / date: no version shown; metadata file generated 2025-02-06
+- Finding: The PDS Geosciences Node FAQ says that data sets archived in the PDS are in the public domain and may be downloaded by anyone for free. Under "Are there any restrictions on the use of PDS data?" it says PDS data sets are classified TSPA (Technology and Software Publicly Available) by the U.S. Department of Commerce, Bureau of Export Administration, and may be exported outside the United States as public open literature, and that when used in published literature or other applications they should be cited appropriately. Documents by JPL authors may carry a copyright statement that is not intended to restrict access; these are covered by the JPL Data and Documentation Use Policy for PDS. For citation the FAQ points to "Citing PDS4 Data" and to the Geosciences Node DOI list. A metadata file for a CRISM DDR coverage shapefile (generated 2025-02-06) also states no access or use limits.
+- Source URL: https://pds-geosciences.wustl.edu/faq.html (TSPA sentence and public domain statement) ; https://pds-geosciences.wustl.edu/jplcopyright.html (JPL policy) ; https://pds.nasa.gov/datastandards/citing/ (how to cite) ; https://pds-geosciences.wustl.edu/dataserv/doi.htm (DOIs) ; https://pds-geosciences.wustl.edu/geocopy/test/ddr/mars_mro_crism_ddr_na.shp.xml (CRISM metadata file)
+- Organization / author: NASA PDS Geosciences Node
+- Version / date: FAQ page footer says "Last updated December 11, 2019"
 - Accessed on: 2026-11-14
-- License: No access or use limits stated for CRISM data; JPL policy applies to JPL-supplied material. Attribution to the data provider and PDS is expected.
-- Confidence: medium (no single page says "CRISM license: X"; the statements above are for PDS data in general and for one CRISM metadata file). Ask Nico to confirm against the Space Apps rules.
-
+- License: Public domain per the PDS FAQ; TSPA classification; cite appropriately (data set DOI, "NASA Planetary Data System")
+- Confidence: high that the FAQ says this (page read in full); the FAQ is for PDS data in general, not CRISM-specific
+  
 # Research card: CRISM known issues and cautions
 - Finding: (1) Spectral parameter maps are not mineral maps; the spectra themselves must be checked. (2) Detection labels are evidence, not proof, and instrument artifacts can look like real results. (3) Ratioing procedures can create inverted or false features if the reference spectrum is not featureless. (4) Targeted data have column-dependent noise and residual atmospheric absorption that need correction. These cautions come from the MarsSI wiki, not from the CRISM team.
 - Source URL: https://marssi.univ-lyon1.fr/wiki/+show/+648c1e70c6bc44919be4bd17366f458f/CRISM
