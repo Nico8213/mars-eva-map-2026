@@ -4,13 +4,23 @@ Commands are for Windows PowerShell and are run from the repository root.
 
 ## Requirements
 
-- Python 3 and a virtual environment in `.venv`.
-- Pinned packages are in `pipeline/requirements.txt` (data pipeline) and `routing/requirements.txt` (routing and tests). The shared packages have the same pins in both files. `scikit-image` is pinned to a release candidate (0.27.0rc1).
+- Python 3 and a virtual environment in `.venv`. The data pipeline was run with Python 3.13.14. Python 3.12 was not tested.
+- Pinned packages are in `pipeline/requirements.txt` (data pipeline) and `routing/requirements.txt` (routing and tests). The shared packages have the same pins in both files. `scikit-image` is pinned to a release candidate (0.27.0rc1), which is a pre-release version. The latest stable release (0.26.0) was not tested.
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r pipeline\requirements.txt -r routing\requirements.txt
 ```
+
+## Windows line endings
+
+Clone with line-ending conversion turned off:
+
+```powershell
+git clone -c core.autocrlf=false https://github.com/Nico8213/mars-eva-map-2026.git
+```
+
+With the default Git setting on Windows, text files are checked out with converted line endings. For example, `validation/data/best_interp.csv` is 8,684,070 bytes in the repository and 8,717,529 bytes after such a checkout. The SHA-256 check in `validation/run_validation.py` then stops with a mismatch. This does not mean the data is wrong.
 
 ## Data download
 
@@ -37,7 +47,7 @@ Step 1, check the coordinate transform:
 .\.venv\Scripts\python.exe validation\check_transform.py
 ```
 
-Output: `validation/out/check_transform.json`
+Output: `validation/out/check_transform.json`. This checks the coordinate transform only. It was made before the parameters were locked and is not the comparison with the Perseverance path.
 
 Step 2, validate against the Perseverance traverse:
 
