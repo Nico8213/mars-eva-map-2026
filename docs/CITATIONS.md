@@ -10,8 +10,35 @@ Every source used in this project is listed here, including open and freely avai
 | Mars 2020 Terrain Relative Navigation Context Camera Orthorectified Image Mosaic, Jezero crop (Fergason, R. L., et al., 2020). File: JEZ_ctx_B_soc_008_orthoMosaic_6m_Eqc_latTs0_lon0.tif | USGS Astrogeology Science Center | 008 (taken from the file name), about 6 m/px | https://doi.org/10.5066/P9GV1ND3 ; product page: https://astrogeology.usgs.gov/search/map/mars_2020_terrain_relative_navigation_context_camera_orthorectified_image_mosaic | 2026-11-14 (downloaded) | CC0 1.0 Universal (stated at https://www.usgs.gov/data/mars-2020-terrain-relative-navigation-context-camera-orthorectified-image-mosaic); the USGS product page also asks users to cite the authors | Optical layer; visual context only, not used in route cost |
 | Mars 2020 Rover PLACES Bundle (best_interp.csv) | NASA PDS Geosciences Node; Mars 2020 project (JPL) | Release 16, posted 2026-08-11, sols 0-1897. Downloaded file: 8,684,070 bytes, 33,459 lines including the header, SHA-256 58FBC62F2676195A00B40B2DA53A797A70284A8D2344B288C999D325B7CCB4CC | https://pds-geosciences.wustl.edu/missions/mars2020/places.htm ; interface specification: https://pds-geosciences.wustl.edu/m2020/urn-nasa-pds-mars2020_rover_places/document/Mars2020_Rover_PLACES_PDS_SIS.pdf | 2026-11-15 (downloaded 09:42:05, UTC+8) | Not stated on the page. PDS general statement: public domain. The interface specification carries a Caltech copyright notice with government sponsorship acknowledged. | Primary validation reference; columns used: planetocentric_latitude and longitude. Planetocentric latitude on a sphere of radius 3396190 m; height datum MOLA areoid (SIS sections 5.1.3, 5.2.3 and 3.9.3, checked by VN, 2026-11-15) |
 | Perseverance traverse and waypoints (M20_traverse.json, M20_waypoints.json) | NASA/JPL-Caltech (Mars 2020 map layers) | Snapshot downloaded 2026-11-15 (UTC+8). Waypoints: 708 points, sol 13 to 2022, SHA-256 BD143EE69241229926ABD373E6305B8BBB326D6B5A7B4A8D6935262696F93DC4. Traverse: 36,661 points, 559 segments, sol 14 to 2022, SHA-256 6DDD0ECE913D75B45D105946082F95ED84E68F4718B68D32A4421DC30877E7E6 | Official page: https://science.nasa.gov/mission/mars-2020-perseverance/location-map/ . File addresses (not linked from the official page; found on third-party pages): https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_traverse.json and https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_waypoints.json | 2026-11-15 | No licence statement found for the data files (checked by VN, 2026-11-15). NASA media usage guidelines apply (generally not copyrighted; https://www.nasa.gov/nasa-brand-center/images-and-media/) | Cross-check for validation. Latitude type: not stated in official documentation |
-| Leaflet | Volodymyr Agafonkin, CloudMade (per LICENSE) | 1.9.4+v1.d15112c (per leaflet.js header) | https://leafletjs.com/ | TBD (date the files were added to the repository, from git history) | BSD 2-Clause (LICENSE file kept in web/vendor/leaflet/; copyright 2010-2023 Volodymyr Agafonkin, 2010-2011 CloudMade) | Web map (web/vendor/leaflet) |
-| Python packages pinned in pipeline/requirements.txt (affine, attrs, certifi, click, ImageIO, lazy-loader, networkx, numpy, packaging, pillow, pyparsing, rasterio, scikit-image, scipy, setuptools, tifffile, wheel) and routing/requirements.txt (the same packages where they overlap, plus hypothesis and pytest, which are used for tests) | Various open-source authors | As pinned in the two requirements files (for example numpy 2.5.4; scikit-image 0.27.0rc1, a release candidate) | https://pypi.org/ | 2026-11-15 (requirements files read) | TBD (one licence per package, to be filled from the installed package metadata) | data pipeline, routing, validation |
+| Leaflet | Volodymyr Agafonkin, CloudMade (per LICENSE) | 1.9.4+v1.d15112c (per leaflet.js header) | https://leafletjs.com/ | 2026-11-14 (date the files were added to the repository, from git history; the download date was not recorded) | BSD 2-Clause (LICENSE file kept in web/vendor/leaflet/; copyright 2010-2023 Volodymyr Agafonkin, 2010-2011 CloudMade) | Web map (web/vendor/leaflet) |
+| Python packages pinned in pipeline/requirements.txt (affine, attrs, certifi, click, ImageIO, lazy-loader, networkx, numpy, packaging, pillow, pyparsing, rasterio, scikit-image, scipy, setuptools, tifffile, wheel) and routing/requirements.txt (the same packages where they overlap, plus hypothesis and pytest, which are used for tests) | Various open-source authors | As pinned in the two requirements files (for example numpy 2.5.4; scikit-image 0.27.0rc1, a release candidate) | https://pypi.org/ | 2026-11-15 (requirements files read) | See section 1.1 below (from installed package metadata) | data pipeline, routing, validation |
+
+## 1.1 Python package licences
+
+Installed in the environment used to run the data pipeline (Python 3.13.14). Versions and licences are as stated in the installed package metadata, read on 2026-11-15.
+
+| Package | Version | License (from package metadata) |
+| --- | --- | --- |
+| affine | 3.0.1 | BSD-3-Clause |
+| attrs | 26.1.0 | MIT |
+| certifi | 2026.10.23 | MPL-2.0 |
+| click | 8.5.1 | BSD-3-Clause |
+| ImageIO | 2.38.1 | BSD-2-Clause |
+| lazy-loader | 0.6 | BSD-3-Clause |
+| networkx | 3.7 | BSD-3-Clause |
+| numpy | 2.5.4 | BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0 |
+| packaging | 26.3 | Apache-2.0 OR BSD-2-Clause |
+| pillow | 13.0.0 | MIT-CMU |
+| pip | 26.1.2 | MIT |
+| pyparsing | 3.3.3 | MIT |
+| rasterio | 1.5.2 | BSD-3-Clause |
+| scikit-image | 0.27.0rc1 (pre-release) | BSD (package classifier "License :: OSI Approved :: BSD License"; the exact BSD variant is not stated in the metadata) |
+| scipy | 1.18.1 | BSD (package classifier "License :: OSI Approved :: BSD License"; the exact BSD variant is not stated in the metadata) |
+| setuptools | 84.2.1 | MIT |
+| tifffile | 2026.11.12 | BSD-3-Clause |
+| wheel | 0.48.0 | MIT |
+
+hypothesis and pytest (used only for the routing tests) were not in this environment, and their licences were not checked. The list does not separate direct from indirect dependencies.
 
 ## 2. Background reading (consulted only; not used in the web page, route cost or validation)
 
@@ -37,5 +64,5 @@ Every source used in this project is listed here, including open and freely avai
 
 | Name | Organization | Version | URL | Accessed | License | Used in |
 | --- | --- | --- | --- | --- | --- | --- |
-| Solarsystemscope texture, 2k Mars (`mars_texture.jpg`, not committed) | Solar System Scope (http://solarsystemscope.com/textures), obtained via Wikimedia Commons. Based on NASA data; colours adjusted; some areas filled with invented terrain (as stated on the Commons file page) | Commons file, 2048x1024, 750,547 bytes (matches the local file) | https://commons.wikimedia.org/wiki/File:Solarsystemscope_texture_2k_mars.jpg ; download: https://upload.wikimedia.org/wikipedia/commons/4/46/Solarsystemscope_texture_2k_mars.jpg?download | Download date to be confirmed by Charles (the file's Windows download record gives the URL, not the date) | Licence to be confirmed by Charles before submission. The Commons page lists CC BY 4.0, which requires attribution. No licence statement was found on the original site (solarsystemscope.com/textures, JavaScript-rendered; not verified) | `video_assets/globe.html` (intro video illustration; not a project data layer) |
+| Solarsystemscope texture, 2k Mars (`mars_texture.jpg`, not committed) | Solar System Scope (http://solarsystemscope.com/textures), obtained via Wikimedia Commons. Based on NASA data; colours adjusted; some areas filled with invented terrain (as stated on the Commons file page) | Commons file, 2048x1024, 750,547 bytes (matches the local file) | https://commons.wikimedia.org/wiki/File:Solarsystemscope_texture_2k_mars.jpg ; download: https://upload.wikimedia.org/wikipedia/commons/4/46/Solarsystemscope_texture_2k_mars.jpg?download | Not recorded (the file's Windows download record gives the URL, not the date) | The Commons page lists CC BY 4.0, which requires attribution. This was not independently verified. No licence statement was found on the original site (solarsystemscope.com/textures, JavaScript-rendered; not verified). The texture is not committed to the repository and is not used by the deployed website. | `video_assets/globe.html` (intro video illustration; not a project data layer) |
 | Three.js r128 (`three.min.js`, loaded from cdnjs) | three.js authors (copyright 2010-2021) | r128 | https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js ; licence: https://github.com/mrdoob/three.js/blob/r128/LICENSE | 2026-11-15 (licence read from the r128 tag) | MIT | `video_assets/globe.html` (script library, not a data source) |
