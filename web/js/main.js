@@ -6,7 +6,8 @@
   var Cockpit = window.Cockpit;
 
   // The CRS name is not decided yet (see docs/INTERFACES.md). Do not invent one.
-  Cockpit.crsLabel = 'TBD';
+  // The CRS name is not decided yet (see docs/INTERFACES.md). Do not invent one.
+  Cockpit.crsLabel = 'Equirectangular (true-scale latitude 0), Mars sphere R = 3396190 m';
 
   // Unit of the map coordinates: 'm' (projected metres) or 'deg' (geographic degrees).
   // It is set from the layer extents once layers.json has loaded.
@@ -19,7 +20,7 @@
     crs: L.CRS.Simple,
     minZoom: -10,
     maxZoom: 20,
-    zoomSnap: 0.25,
+    zoomSnap: 0,       // Changed to 0 so fitBounds perfectly fills the screen
     zoomDelta: 0.5,
     attributionControl: false
   });
@@ -42,7 +43,7 @@
     update: function (latlng) {
       var text;
       if (Cockpit.coordUnit === 'deg') {
-        text = 'Lon: ' + latlng.lng.toFixed(5) + ' deg, Lat: ' + latlng.lat.toFixed(5) + ' deg';
+        text = 'approx. Lon: ' + latlng.lng.toFixed(5) + ' deg, approx. Lat: ' + latlng.lat.toFixed(5) + ' deg';
       } else {
         text = 'E: ' + latlng.lng.toFixed(1) + ' m, N: ' + latlng.lat.toFixed(1) + ' m';
       }

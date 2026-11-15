@@ -20,5 +20,16 @@
       "north": 18.500305287409148
     },
     "data_card_id": "hirise_dtm_006"
+  },
+  {
+    "name": "CTX",
+    "file": "layers/ctx.png",
+    "extent": {
+      "west": 77.39550672610693,
+      "east": 77.46312411037825,
+      "south": 18.43280836242818,
+      "north": 18.500324523070358
+    },
+    "data_card_id": "ctx_orthomosaic_008"
   }
 ]
