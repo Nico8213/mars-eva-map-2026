@@ -29,7 +29,7 @@ out_path     = REPO_ROOT / "data" / "processed" / "poi.geojson"
 
 # Same geographic CRS choice as step3_layers.py
 GEO_CRS_PRIMARY  = "EPSG:49900"
-GEO_CRS_FALLBACK = "+proj=longlat +a=3396190 +b=3376200 +no_defs"
+GEO_CRS_FALLBACK = "+proj=longlat +R=3396190 +no_defs"
 
 ALLOWED_SOURCES = {"CRISM", "optical"}
 REQUIRED_COLS = ["id", "name", "type", "pixel_x", "pixel_y", "source", "evidence"]

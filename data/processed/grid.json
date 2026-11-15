@@ -12,6 +12,6 @@
     "latitude": 18.500305287409148,
     "longitude": 77.39558684708938
   },
-  "coordinate_notes": "Top-left corner reprojected from the native projected CRS to Mars geographic coordinates using the IAU oblate ellipsoid (Proj4: +proj=longlat +a=3396190 +b=3376200 +no_defs). Longitude and latitude are in degrees; positive east, positive north.",
+  "coordinate_notes": "Top-left corner reprojected from the native projected CRS to Mars geographic coordinates on the IAU 2000 sphere (radius 3396190 m, planetocentric latitude). Longitude and latitude are in degrees; positive east, positive north.",
   "known_issue": "Native projection is equirectangular with standard parallel 0. At latitude about 18.5 deg one east-west pixel spans about 0.95 m on the ground while north-south spans 1 m, so the east-west gradient component of the slope is underestimated by about 5 percent."
 }
