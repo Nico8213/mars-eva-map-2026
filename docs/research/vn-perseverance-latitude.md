@@ -16,7 +16,11 @@ Finding 4: Longitude and easting Conclusion: Longitude is computed from easting 
 
 Finding 5: Elevation datum Conclusion: Elevation in the CSV is relative to the MOLA areoid. At the landing site the areoid is 3394507.076 m from the planet center, about 1683 m below the 3396190 m reference. Source: SIS Section 3.9.3 Confidence: Stated in official documentation
 
-Finding 6: Release number Conclusion: The PDS bundle page seen on 2026-11-15 states "Mars 2020 Release 15 covers all PLACES data from 2021-02-18 through 2026-02-03, or sols 0 to 1762" (page dated Apr. 7, 2026). The team uses Release 16. Release 16 was not confirmed on that page. The SIS says each release is a complete redelivery and the latest release should be used. Source: https://pds-geosciences.wustl.edu/missions/mars2020/places.htm and SIS Section 4.3 Confidence: Stated in official documentation for Release 15; Release 16 not confirmed Unresolved: Check the Release Notes link on the bundle page for Release 16 and whether the SIS changed after Version 1.0 (2022-02-22).
+Finding 6: Release number
+Conclusion: The PDS bundle page states "Mars 2020 Release 16 covers all PLACES data from 2021-02-18 through 2026-06-21, or sols 0 to 1897." The release notes list Release 16 with release date 2026-08-11. (The page text gives the start date as 2021-02-18; the release notes give 2022-02-18. Not resolved.) The release notes also state that ROVER,n,0 rows are absent from best_interp.csv and best_tactical.csv; use the SITE,n row for position.
+Source link: https://pds-geosciences.wustl.edu/missions/mars2020/places.htm and https://pds-geosciences.wustl.edu/m2020/urn-nasa-pds-mars2020_rover_places/document/release_notes.txt
+Confidence: Stated in official documentation
+Unresolved: Whether the SIS changed after Version 1.0 (2022-02-22).
 
 Part 2. MMGIS M20_traverse.json and M20_waypoints.json
 
