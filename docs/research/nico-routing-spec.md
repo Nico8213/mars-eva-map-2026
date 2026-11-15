@@ -23,9 +23,8 @@ Find the lowest-cost walking route between two points of interest on the slope g
 Tags used below:
 - **[SOURCE]** is a fact taken from a document or a file. The source is named.
 - **[DESIGN]** is our own choice, not a measured or published number. It is fixed here, before any result exists, and must not change afterwards (project plan §9.2, §9.4).
-- **[TBD-DATA]** can only be filled by opening the real file. Do not type a guess. Write the value read from the file, with the command or script that produced it.
 
-"Project plan" means the team's internal planning document. It is not part of this repository. Section numbers refer to that document. Spec version: v1.0 (14 Nov 2026, updated 15 Nov 2026, before any validation run).
+"Project plan" means the team's internal planning document. It is not part of this repository. Section numbers refer to that document. Spec version: v1.0 (14 Nov 2026, updated 15 Nov 2026). `validation/params.json` was locked on 15 Nov 2026 at 12:52:46 (UTC+8): commit d1965fd105596873de4392fa2985cef0b0b19fac on branch `b-routing`, message "[B] lock validation params v1.0". According to Austin, no validation result existed before the lock. [SOURCE: Austin's report, 2026-11-15]
 
 Rules:
 1. `validation/params.json` is committed **before** the first validation run. The commit hash is written into `validation/out/report.json`.
@@ -84,8 +83,8 @@ Later downloads are saved separately and never replace the snapshot above.
 These rules were fixed on 15 Nov 2026, after reading the snapshot facts and before any comparison of a route with the reference was run. [DESIGN]
 
 Preparing the reference line:
-1. The primary reference is built from `best_interp.csv` (4.2). Which rows form the rover path: **[TBD-DATA]** The PLACES Release Notes say that `best_interp.csv` has no `ROVER,n,0` row and that the position at the start of a site is the `SITE,n` row [SOURCE: `docs/research/vn-perseverance-latitude.md`]. Austin's report says a sol 0 row exists among the ROVER rows. The two statements must be reconciled. Austin lists the distinct `frame` values with their row counts, prints the sol 0 row, states which rows form the path, and writes the filter into `params.json`. Nico approves it. SITE rows are not part of the ordered path. Only the first SITE row is used, as the landing site.
-2. Order the path by **ascending sol**. Do not trust the order of rows in the file. The script must check that sol never decreases along the line. For the MMGIS cross-check, **[TBD-DATA]** confirm which file carries `sol` (and `dist_total`) for each feature; these field names were only seen on third-party pages.
+1. The primary reference is built from `best_interp.csv` (4.2). **Path rows (rule approved by Nico, 15 Nov 2026) [DESIGN]:** the path is the first row with `frame` = SITE (the landing site), followed by all rows with `frame` = ROVER (33,370 rows), ordered by ascending sol. Rows with the same sol keep their order in the file. The other 87 SITE rows are not part of the path (88 SITE rows plus 33,370 ROVER rows make the 33,458 data rows). The smallest sol among the ROVER rows is 0 (site 1, drives 44 and 52), and no ROVER row has drive = 0, which agrees with the PLACES Release Notes (the `ROVER,n,0` rows were removed from `best_interp.csv`). The ROVER rows hold 531 distinct sol values. [SOURCE: Austin's report, 2026-11-15; Release Notes via `docs/research/vn-perseverance-latitude.md`] The filter is written into `params.json`.
+2. Order the path by **ascending sol**. Do not trust the order of rows in the file. The script checks that sol never decreases along the line; in this file it does not decrease. **Tie rule [DESIGN, approved by Nico, 15 Nov 2026]:** `dist_total` is not used, because the traverse file has no such field [SOURCE: Austin's report]. For PLACES, among rows with the same sol, the row later in the file is the later point. For the MMGIS cross-check, the segment with the larger index is later, and within one segment the vertex with the larger index is later.
 3. For the MMGIS cross-check, remove the "partial" and "duplicate" segments first, using the rule in 4.2.
 
 Definitions:
@@ -94,10 +93,20 @@ Definitions:
 - **Validation reference** = the first uninterrupted run of the ordered path that is inside the extent, starting at the landing site. If the landing site is outside the extent, stop and ask Nico.
   - Reason: a route needs one continuous reference. If the rover leaves the grid and comes back, the part outside has no terrain data, and the part after re-entry would not connect to the start.
 - **First path point** = the landing site.
-- **Last path point** = the last vertex of the validation reference before the path first leaves the extent (the largest sol in the run; if two points tie, the one farther along the path). It is a real rover position, not a point where a line crosses the boundary. No boundary-intersection point is created.
+- **Last path point** = the last vertex of the validation reference before the path first leaves the extent (the largest sol in the run; if two points tie, the later one by the tie rule of item 2). It is a real rover position, not a point where a line crosses the boundary. No boundary-intersection point is created.
 - Any part of the path that is inside the extent but after re-entry is **not compared**. The report states its number of points and length.
 - The reference is clipped by this rule only. No hand-drawn cuts. The terrain is not cropped here, because `grid.json` is already the cropped terrain made by the data pipeline.
-- **Check before locking.** About 74% of the MMGIS vertices are outside the grid (4.3), so the first run inside the extent may be short. **[TBD-DATA]** Austin produces a read-only table: the number of contiguous runs inside the extent, each run's sol range and length, and whether the first run starts at the landing site. The table must not include any comparison with our route. Nico reads it and confirms that the rule above gives a usable reference. If it does not (landing site outside the extent, or a first run too short to be meaningful), stop and tell Nico before locking. A different run is never chosen after seeing results.
+- **Runs inside the extent (read-only table by Austin, produced on 15 Nov 2026 before the lock and without any comparison with our route).** The PLACES path has 4 contiguous runs inside the extent. Path index 0 is the landing site. [SOURCE: Austin's report]
+
+  | Run | First path index | Sol range | Length (m) |
+  | --- | --- | --- | --- |
+  | 1 | 0 | n/a to 134 | 1271.399 |
+  | 2 | 1647 | 202 to 285 | 336.926 |
+  | 3 | 2832 | 353 to 386 | 2147.661 |
+  | 4 | 4203 | 387 to 718 | 9542.911 |
+
+  The first run starts at the landing site, which lies inside the grid. **Decision (Nico, 15 Nov 2026): only run 1 is used, and the run is never changed.** Run 1 has path indices 0 to 898 (899 points) and a length of 1271.399 m; the MMGIS cross-check gives 1270.119 m for the same run. For run 3, PLACES gives 2147.661 m and MMGIS gives 2716.261 m. The difference is **unexplained**. It is recorded in the report notes with both numbers, and it is not used to change a parameter or the run. [DESIGN; numbers from Austin's report]
+- **First and last reference point (run 1).** First point = path index 0, the landing site (latitude 18.444627146, longitude 77.450885729). Last point = path index 898: line 904 of the file, `frame` = ROVER, site 5, drive 816, sol 134, latitude 18.432837004, longitude 77.452126516; it falls in grid row 3999, column 3351, with a slope of 2.9099°, and is not a blocked cell. Sol 134 has 37 tied rows (path indices 862 to 898), and the tie rule picks the last one in the file. **Note:** this point lies on the bottom row of the grid, 0.838 m from the lower boundary. The reference leaves the grid there; it does not stop there naturally. The report says so. [SOURCE: Austin's report, 2026-11-15]
 
 The primary reference stops at sol 1897 and the MMGIS cross-check reaches sol 2022. The report states the sol range each one covers.
 
@@ -105,7 +114,7 @@ The primary reference stops at sol 1897 and the MMGIS cross-check reaches sol 20
 **Resampling.** [DESIGN]
 1. Terrain: not resampled. The validation uses `slope.npy` and `grid.json` at their stored resolution.
 2. If the grid is ever coarsened, compute slope first at native resolution, then coarsen the **slope** (not the elevation) with the **maximum** per block. A coarse cell is then blocked if any fine cell in it is blocked, which is the cautious choice. Continuous layers use bilinear interpolation; masks and categories use nearest neighbour.
-3. Lines: our route and the validation reference are both converted to equally spaced points along their length, spacing = one grid pixel (from `grid.json`), by linear interpolation in the local metre coordinates of 4.3. Never interpolate in degrees. The first and last vertex of each line are always kept exactly; the last step may be shorter than one pixel. The vertices of our route are grid **cell centres** (the path passes through cell centres): cell centre = outer corner of the top-left pixel + (index + 0.5) × pixel size. **[TBD-DATA]** Austin confirms from `grid.json` that `top_left_x_m` and `top_left_y_m` are the outer corner of the top-left pixel (GeoTIFF convention) and not a pixel centre; if they are a centre, the 0.5 is dropped. The reference line is built from its own positions and is not snapped to cell centres.
+3. Lines: our route and the validation reference are both converted to equally spaced points along their length, spacing = one grid pixel (from `grid.json`), by linear interpolation in the local metre coordinates of 4.3. Never interpolate in degrees. The first and last vertex of each line are always kept exactly; the last step may be shorter than one pixel. The vertices of our route are grid **cell centres** (the path passes through cell centres): cell centre = outer corner of the top-left pixel + (index + 0.5) × pixel size. Austin confirmed on 15 Nov 2026 that the top-left coordinate in `grid.json` is the outer corner of the top-left pixel (GeoTIFF convention), so the 0.5 stays. [SOURCE: Austin's report] The reference line is built from its own positions and is not snapped to cell centres.
 4. The method and spacing are written into `report.json`.
 
 **Metrics.**
@@ -189,8 +198,8 @@ Committed in `validation/params.json` before the first validation run and not ch
 ## 6. Open items
 
 - Austin's list has 9 items. His first message said 10 but numbered only 9; on 15 Nov 2026 Nico and Austin agreed that there is no item 10.
-- **[TBD-DATA]** values still open before `validation/params.json` is locked: 4.4 (the rover-row filter, the `sol` and `dist_total` field names, and the table of runs inside the extent) and 4.5 (the cell-centre convention of `grid.json`).
-- Already settled (15 Nov 2026): primary reference and its hash (4.2), landing site rule (4.4), partial and duplicate rule (4.2), slope not recomputed (4.3), latitude convention of the PLACES file and the undocumented MMGIS latitude type (4.3), the CRS of the grid (4.3), 0-based segment indices (4.2), and the polyline and resampling rule (4.5).
+- Nothing in sections 4.2 to 4.5 is still to be filled from the real files. The SHA-256 of `slope.npy` and `grid.json` are stored in `validation/params.json` (commit d1965fd) and are not repeated here.
+- Settled on 15 Nov 2026: primary reference and its hash (4.2), landing-site rule (4.4), rover-row filter and tie rule (4.4), run table and use of run 1 only (4.4), partial and duplicate rule (4.2), slope not recomputed (4.3), latitude convention of the PLACES file and the undocumented MMGIS latitude type (4.3), the CRS of the grid (4.3), 0-based segment indices (4.2), polyline, cell-centre and resampling rule (4.5), and the lock of `params.json` (4.1).
 
 Where Austin's items are answered:
 
@@ -207,7 +216,7 @@ Where Austin's items are answered:
 | 9 | Cropping the Perseverance path | 4.4 |
 
 ## 7. Suggested `params.json` keys (cross-check)
-Austin may rename the keys. Every line must exist in some form. `null` values are **[TBD-DATA]**.
+Austin may rename the keys. Every line must exist in some form. Values shown as `null` or as a reference to `params.json` are stored in `validation/params.json`.
 
 ```json
 {
@@ -220,7 +229,7 @@ Austin may rename the keys. Every line must exist in some form. `null` values ar
     "primary_lines_including_header": 33459,
     "sha256_primary": "58FBC62F2676195A00B40B2DA53A797A70284A8D2344B288C999D325B7CCB4CC",
     "primary_columns_used": ["planetocentric_latitude", "longitude"],
-    "primary_path_row_filter": null,
+    "primary_path_row_filter": "first frame == SITE row (landing site), then all frame == ROVER rows (33370), ascending sol, file order for ties; other SITE rows excluded",
     "cross_check_traverse_file": "M20_traverse.json",
     "cross_check_waypoints_file": "M20_waypoints.json",
     "cross_check_download_time": "2026-11-15 08:06-08:08 UTC+8",
@@ -233,18 +242,19 @@ Austin may rename the keys. Every line must exist in some form. `null` values ar
     "max_sol_in_waypoints": 2022,
     "sha256_traverse": "6DDD0ECE913D75B45D105946082F95ED84E68F4718B68D32A4421DC30877E7E6",
     "sha256_waypoints": "BD143EE69241229926ABD373E6305B8BBB326D6B5A7B4A8D6935262696F93DC4",
-    "sha256_slope_npy": null,
-    "sha256_grid_json": null,
+    "sha256_slope_npy": "recorded in validation/params.json (commit d1965fd)",
+    "sha256_grid_json": "recorded in validation/params.json (commit d1965fd)",
     "partial_rule": "fewer than 2 distinct vertices, or length 0",
     "duplicate_rule": "coordinates identical to the preceding segment; keep the earlier",
-    "partial_segments": null,
+    "partial_segments": [206, 207, 369, 402, 490],
     "duplicate_segments": [207],
     "removed_segments_union": [206, 207, 369, 402, 490],
     "removed_segments_union_count": 5,
     "segment_index_base": 0,
     "recorded_not_filtered": { "same_fromRMC_toRMC": [180, 181], "rmc_chain_breaks": ["83-84", "84-85", "89-90", "95-96", "180-181", "534-535"] }
   },
-  "clip": { "extent": "grid.json bounds", "reference_run": "first uninterrupted run inside the extent, starting at the landing site", "landing_site": "first row with frame == SITE in best_interp.csv", "landing_site_sol": null },
+  "clip": { "extent": "grid.json bounds", "reference_run": "first uninterrupted run inside the extent, starting at the landing site", "landing_site": "first row with frame == SITE in best_interp.csv", "landing_site_sol": "n/a (SITE rows carry sol = -1)" },
+  "reference_run": { "run": 1, "first_path_index": 0, "last_path_index": 898, "points": 899, "length_m": 1271.399, "sol_range": "n/a to 134", "tie_rule": "PLACES: later row in file; MMGIS: larger segment index, then larger vertex index" },
   "crs": {
     "terrain_file": "JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40.tif",
     "terrain_version": "006",
