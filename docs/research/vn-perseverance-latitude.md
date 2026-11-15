@@ -1,41 +1,29 @@
-VN research card: Carter et al. (2013) citation check
+VN research card: latitude type and datum of Perseverance position data
 
-Prepared for: docs/research/vn-carter-2013-citation.md Date viewed: 2026-11-15 (re-open the DOI link and confirm before final submission) Confidence labels used: "Confirmed by several independent records" / "Not yet opened on the publisher page" / "Not checked"
+Prepared for: docs/research/vn-perseverance-latitude.md Date viewed: 2026-11-15 (all links opened on this date; re-open and confirm before final submission) Confidence labels used: "Stated in official documentation" / "Indirect inference" / "Not found"
 
-Citation as given by the team
+Part 1. PLACES best_interp.csv, column planetocentric_latitude
 
-Carter, J., Poulet, F., Bibring, J.-P., Mangold, N., Murchie, S. (2013). Hydrous minerals on Mars as seen by the CRISM and OMEGA imaging spectrometers: Updated global view. Journal of Geophysical Research: Planets, 118(4), 831-858. DOI 10.1029/2012JE004145
+Data checked: Mars 2020 Rover PLACES bundle, file best_interp.csv in the data_localizations collection Official document: Rover PLACES Data Products for PDS, Software Interface Specification (SIS), Version 1.0, 2022-02-22, prepared by Robert Deen, JPL Source link (SIS): https://pds-geosciences.wustl.edu/m2020/urn-nasa-pds-mars2020_rover_places/document/Mars2020_Rover_PLACES_PDS_SIS.pdf Source link (bundle page): https://pds-geosciences.wustl.edu/missions/mars2020/places.htm
 
-Field-by-field check
+Finding 1: Latitude type Conclusion: planetocentric_latitude is planetocentric latitude (angle measured from the center of the planet). The SIS also provides a separate column, planetodetic_latitude. Source: SIS Section 5.1.3 (Per-View CSV File), field definitions Confidence: Stated in official documentation
 
-Title: Hydrous minerals on Mars as seen by the CRISM and OMEGA imaging spectrometers: Updated global view Result: Correct, no change needed.
+Finding 2: Reference surface for planetocentric_latitude Conclusion: The SIS computes planetocentric_latitude from the PLACES northing with one radius, Re = 3396190 m, using latitude = (northing / Re) x (180 / pi). The SIS calls Re the "ellipsoid radius". Because the formula uses a single radius, and the SIS says the map label sets all three axis radii (A, B, C) to the same value (the Mars spherical radius), the reference is a sphere of radius 3396190 m. Source: SIS Section 5.1.3 (formula) and Section 5.2.3 (map label keywords A_AXIS_RADIUS, B_AXIS_RADIUS, C_AXIS_RADIUS) Confidence: Stated in official documentation (formula and radius). The wording "sphere" follows the SIS statement that all three axis radii are the same. Note: In Section 5.2.3 the SIS text writes the radius as 3393190 m, but the label example in the same section and every formula use 3396190 m (3396.19 km). Treat 3393190 as a typo in the SIS text; do not copy it.
 
-Authors: Carter, J.; Poulet, F.; Bibring, J.-P.; Mangold, N.; Murchie, S. Result: Correct, same five authors in the same order.
+Finding 3: Planetodetic column (for reference only) Conclusion: The SIS defines planetodetic_latitude using Re = 3396190 m and a second radius of 3376200 m. The SIS example row shows planetocentric 18.444627146 and planetodetic 18.346169209 at the same point, a difference of about 0.1 degree at Jezero. The project should state which column it uses. Source: SIS Section 5.1.3 Confidence: Stated in official documentation. The text extraction of the planetodetic formula was garbled, so the formula itself was not verified here; do not use that column unless the formula is checked in the original PDF.
 
-Journal: Journal of Geophysical Research: Planets Result: Correct. (ISSN 2169-9097 print, 2169-9100 online, per the British Library record.)
+Finding 4: Longitude and easting Conclusion: Longitude is computed from easting using Re = 3396190 m and a standard parallel of 18.4663 degrees; easting is measured at that standard parallel. Mars 2020 maps use an equirectangular projection with that standard parallel. Source: SIS Sections 3.9.1, 3.9.2 and 5.1.3 Confidence: Stated in official documentation
 
-Volume and issue: 118, issue 4 Result: Correct.
+Finding 5: Elevation datum Conclusion: Elevation in the CSV is relative to the MOLA areoid. At the landing site the areoid is 3394507.076 m from the planet center, about 1683 m below the 3396190 m reference. Source: SIS Section 3.9.3 Confidence: Stated in official documentation
 
-Pages: 831-858 Result: Correct. Note: the PDF copy archived by ESA shows a running header "VOL. 118, 1-28", which is the online-article numbering. The issue pages 831-858 are the ones to cite.
+Finding 6: Release number Conclusion: The PDS bundle page seen on 2026-11-15 states "Mars 2020 Release 15 covers all PLACES data from 2021-02-18 through 2026-02-03, or sols 0 to 1762" (page dated Apr. 7, 2026). The team uses Release 16. Release 16 was not confirmed on that page. The SIS says each release is a complete redelivery and the latest release should be used. Source: https://pds-geosciences.wustl.edu/missions/mars2020/places.htm and SIS Section 4.3 Confidence: Stated in official documentation for Release 15; Release 16 not confirmed Unresolved: Check the Release Notes link on the bundle page for Release 16 and whether the SIS changed after Version 1.0 (2022-02-22).
 
-Year: 2013 Result: Correct. The British Library record gives the issue publication date as 2013-04-24; one record lists the online date as 2012-12-13.
+Part 2. MMGIS M20_traverse.json and M20_waypoints.json
 
-DOI: 10.1029/2012JE004145 Result: Correct, the same DOI appears in all records below.
+Files: https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_traverse.json and https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_waypoints.json
 
-Errors found: None.
+Finding 7: Latitude type of the coordinates inside the two JSON files Conclusion: Not found. No NASA/JPL documentation was found that states whether the latitude values in these two files are planetocentric or planetographic (planetodetic), or which datum they use. What was searched: the NASA MMGIS documentation site (nasa-ammos.github.io/MMGIS), the MMGIS GitHub page, and NASA's M20 location-map configuration. Confidence: Not found
 
-Corrected/confirmed reference (same as the team's, formatted in full): Carter, J., Poulet, F., Bibring, J.-P., Mangold, N., & Murchie, S. (2013). Hydrous minerals on Mars as seen by the CRISM and OMEGA imaging spectrometers: Updated global view. Journal of Geophysical Research: Planets, 118(4), 831-858. https://doi.org/10.1029/2012JE004145
+Finding 8: Planetary radius configured for the NASA M20 map (not the same as the JSON latitude type) Conclusion: NASA's configuration for the Mars 2020 MMGIS map (mission "M20") sets the planetary radius with major = 3396190 and minor = 3396190, and has no custom projection set. This describes the map configuration; it does not say how the latitude values in the two JSON files were computed. Source link: https://mars.nasa.gov/maps/location/api/configure/get?mission=M20 Confidence: Stated in official configuration data (map radius only). The JSON latitude type is still Not found.
 
-Sources use
-
-British Library catalogue record (title, authors, issue 4, pages 831-858, publication date 2013-04-24, DOI): https://eld.bl.uk/catalog/100046243194_0x000001 IAS (Universite Paris-Saclay) publication record (journal, volume 118, pagination 831-858): https://www.ias.universite-paris-saclay.fr/fr/node/1408 IAS record, English page (DOI 10.1029/2012JE004145): https://ias.universite-paris-saclay.fr/en/node/1408 Copy of the paper archived by ESA (header shows JGR Planets, vol. 118, doi:10.1029/2012JE004145, 2013): https://archives.esac.esa.int/psa/ftp/MARS-EXPRESS/OMEGA/MEX-M-OMEGA-5-DDR-GLOBAL-MAPS-V1.0/DOCUMENT/CARTER_JGR2013.PDF
-
-Confidence: Confirmed by several independent records. Not yet opened on the publisher page (doi.org link could not be opened in this check).
-Mars Trek layer vs. this paper
-The Mars Trek layer "Hydrous Mineral Detections (OMEGA, CRISM)" cites in its description text: J. Carter, F. Poulet, J.-P. Bibring, N. Mangold, S. Murchie (2013), Hydrous minerals on Mars as seen by the CRISM and OMEGA imaging spectrometers: Updated global view, Journal of Geophysical Research: Planets, 118, 4, 831-858. Result: Same paper (same authors, year, title, journal, volume, issue, pages). Confidence: Confirmed (compared with the description text recorded in the Mars Trek layer card, accessed 2026-11-14).
-
-JMARS layer panel
-Not checked. The JMARS panel text was not available in this check. To confirm, copy the citation text from the JMARS layer's info panel and compare it with the reference above: authors, year, title, journal, volume, issue, pages. Result: [VN to fill: "same paper" or the exact text found in the panel] Confidence: Not checked
-
-Unresolved
-Open https://doi.org/10.1029/2012JE004145 and confirm it lands on the Carter et al. (2013) article page on the publisher site. Fill in the JMARS panel result above.
+Unresolved: Ask the MMGIS contacts listed on the NASA-AMMOS MMGIS GitHub page, or the Mars 2020 location map team, which latitude type and datum the two JSON files use. Until answered, project text must say "latitude type of the MMGIS JSON files not documented" and must not label them planetocentric or planetographic. Unofficial forum and blog posts about these files were seen and are not used here.
