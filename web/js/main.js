@@ -70,6 +70,10 @@
       return;
     }
     map.fitBounds(bounds);
+
+    setTimeout(function() {
+    map.invalidateSize();
+}, 500);
     // Allow zooming out a little past the full view and in a few levels, so the
     // map is not lost and the image is not zoomed into blur forever.
     var fitZoom = map.getZoom();
