@@ -65,11 +65,17 @@ New downloads are saved separately and never replace the 2026-10-11 snapshot (pr
 5. **Mandatory checks, run before validation:**
    - the landing site of 4.4, converted into the DTM projection, falls inside the grid extent;
    - for two points taken from the corners of the extent, the great-circle (haversine) distance on the sphere and the distance in the local projection differ by less than 1%. Print both numbers. If the difference is 1% or more, stop and tell Nico.
+   - **Latitude convention of the rover file.** **[TBD-DATA]** Find in NASA/JPL documentation which datum and latitude type the rover JSON uses. Do not assume. Convert with the sphere above. Using the ellipsoid with b = 3376200 instead would shift points north-south by about 0.2° of latitude, roughly 12 km at 18.5°N (calculated from the two radii, not from a source). That is more than half the height of the grid. Diagnostic: the share of reference points that fall in blocked cells (4.6, item 7). A large share is a warning of a conversion error; report it and tell Nico.
 6. Distance = planimetric Euclidean distance in the local projection. Point-to-line distance, if used, uses the closest point on the segment.
 7. Route length (shown on the web page and used in validation) is computed from route vertex coordinates in the local projection, with one shared function. It is not computed by counting cells.
 8. The height reference (`DeltaGeoid` in the file name) does not matter for planimetric distance. If a 3D "surface length" is ever reported, label it separately and state how it was computed.
 
-**Dependency on the data pipeline (ask Xin En).** Because of the cos(latitude) effect above, slope computed with a spacing of 1 m on both axes would understate the east-west gradient by about 5%. **[TBD-DATA]** Xin En states in `data/processed/sources.md` how east-west pixel spacing was handled when making `slope.npy`. If both axes were treated as 1 m, either the slope is recomputed with the ground spacing (north-south 1 m, east-west 1 m × cos(latitude)) or the limitation is written in the report and the data card. [DESIGN]
+**Known limitation of the slope data (decision).** The slope script uses a spacing of 1 m on both axes. At Jezero one map metre east-west is about 0.95 m on the ground (cos of latitude 18.5° is about 0.948), so the east-west part of the gradient is understated by about 5%. Decision: `slope.npy` is **not** recomputed for v1.0, because the route and validation runs use the current file and the parameters were locked before running (4.1). [DESIGN]
+- The limitation is written in `data/processed/sources.md`, in `grid.json` (`known_issue`), in the slope data card, in the validation report, and on the project page.
+- Effect, stated plainly: a slope facing east-west is computed a little lower than it is, so a few cells close to the 20° limit may be treated as passable when a corrected calculation would block them.
+- A corrected slope may be run later only as a separate, labelled "v1.1 sensitivity run" that is declared in `params.json` first. The v1.0 report is kept next to it, and both are reported. [DESIGN]
+
+**Latitude and longitude in the pipeline outputs.** The pipeline scripts (`step2_slope.py`, `step3_layers.py`, `step4_poi.py`) convert corner coordinates to latitude/longitude with a fallback ellipsoid (`+a=3396190 +b=3376200`), while `grid.json` describes a sphere. Those latitude/longitude values are informational: the web page and the routing code work in projected coordinates. **Validation must not read them.** Validation converts the rover's latitude/longitude with the sphere of this section. [DESIGN]
 
 ### 4.4 Landing site, first point, last point, and clipping the traverse
 Preparing the reference line:
