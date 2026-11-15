@@ -69,6 +69,19 @@
 
 输出不含任何验证指标。
 
+## Coordinates and generated routes (English)
+
+The coordinates in `route_<name>.geojson` are grid metres `[easting_m, northing_m]` in the DTM equirectangular projection on the sphere R = 3396190 m. They are **not** longitude/latitude. The web page must convert or reproject them before display.
+
+Generated routes in `routing/out/` (`length_m` and `max_slope_deg` read from the GeoJSON properties):
+
+| File | end_poi | length_m | max_slope_deg |
+|---|---|---|---|
+| `route_landing-poi-001.geojson` | poi-001 | 2697.21 | 19.82 |
+| `route_landing-poi-002.geojson` | poi-002 | 3149.45 | 19.98 |
+| `route_landing-poi-003.geojson` | poi-003 | 1460.42 | 17.81 |
+| `route_landing-poi-004.geojson` | poi-004 | 2872.13 | 12.38 |
+
 ## 网页（Charles）需要的路线文件
 
 依据 `web/js/routes.js`，网页从 `web/public/data/routes/` 读取：
