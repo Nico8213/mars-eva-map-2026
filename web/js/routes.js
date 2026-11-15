@@ -41,15 +41,28 @@
 
   // Draw one route: a dark casing line below a bright line, so it is visible
   // on every layer. Only the bright line is clickable.
-  function drawRoute(feature, group) {
+  function drawRoute(feature, group, grid) {
+    var toLatLng = Cockpit.toLatLng;
+
+    // 根据 Austin 的要求，如果存在 grid.json，则将网格米(Easting/Northing)转换为页面坐标(x/y)
+    if (grid && grid.pixel_size_m) {
+      toLatLng = function (coords) {
+        var easting = coords[0];
+        var northing = coords[1];
+        var x = (easting - grid.top_left_x_m) / grid.pixel_size_m;
+        var y = (grid.top_left_y_m - northing) / grid.pixel_size_m;
+        return Cockpit.toLatLng([x, y]);
+      };
+    }
+
     var casing = L.geoJSON(feature, {
-      coordsToLatLng: Cockpit.toLatLng,
+      coordsToLatLng: toLatLng,
       pane: 'routes',
       interactive: false,
       style: function () { return { color: '#000', weight: 8, opacity: 0.8 }; }
     });
     var line = L.geoJSON(feature, {
-      coordsToLatLng: Cockpit.toLatLng,
+      coordsToLatLng: toLatLng,
       pane: 'routes',
       style: function () {
         // A route click must not also open the layer popup.
@@ -82,9 +95,6 @@
     });
   }
 
-  // Route data may not exist yet. A missing or unreadable index or route file
-  // (HTTP 404, network error, invalid JSON) is not an error for the user: log one
-  // line and leave the map as it is.
   var NO_DATA_MESSAGE = 'No route data available yet';
 
   function loadRoutes() {
@@ -92,22 +102,25 @@
     var group = L.layerGroup();
     var drawn = 0;
 
-    return Cockpit.loadJson('routes/index.json').then(function (files) {
-      if (!Array.isArray(files)) { throw new Error('routes/index.json is not a list'); }
-      // One failed file must not stop the others.
-      return Promise.allSettled(files.map(function (file) {
-        return Cockpit.loadJson('routes/' + file).then(function (feature) {
-          if (!feature || !feature.geometry || feature.geometry.type !== 'LineString') {
-            // The file loaded but has the wrong content: tell the user.
-            Cockpit.showError('Route file is not a LineString Feature: routes/' + file);
-            return;
-          }
-          drawRoute(feature, group);
-          drawn += 1;
-        });
-      }));
+    // 优先读取 grid.json 获取网格参数，再去渲染 routes
+    Cockpit.loadJson('grid.json').catch(function () {
+      return null; // 如果文件不存在则安全降级，不抛出异常
+    }).then(function (grid) {
+      return Cockpit.loadJson('routes/index.json').then(function (files) {
+        if (!Array.isArray(files)) { throw new Error('routes/index.json is not a list'); }
+        // One failed file must not stop the others.
+        return Promise.allSettled(files.map(function (file) {
+          return Cockpit.loadJson('routes/' + file).then(function (feature) {
+            if (!feature || !feature.geometry || feature.geometry.type !== 'LineString') {
+              Cockpit.showError('Route file is not a LineString Feature: routes/' + file);
+              return;
+            }
+            drawRoute(feature, group, grid);
+            drawn += 1;
+          });
+        }));
+      });
     }).then(function (results) {
-      // A route file that cannot be loaded is skipped; the others are still drawn.
       var failedFiles = results.filter(function (r) { return r.status === 'rejected'; });
       if (failedFiles.length || drawn === 0) {
         console.log(NO_DATA_MESSAGE);
@@ -117,7 +130,6 @@
       group.addTo(map);
       addToggle(group);
     }).catch(function () {
-      // Index missing or unreadable. Exit without throwing.
       console.log(NO_DATA_MESSAGE);
     });
   }
