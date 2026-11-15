@@ -1,3 +1,4 @@
+Historical: written on 13 Nov 2026 for the dummy-data phase. The current page uses real data; see README.md and docs/CITATIONS.md.
 # Design: c-web-cockpit
 
 ## Overview
