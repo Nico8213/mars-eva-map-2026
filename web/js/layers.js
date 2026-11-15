@@ -108,13 +108,35 @@
       addInfoRow(box, 'Resolution', cardText(card.resolution));
       addInfoRow(box, 'License', cardText(card.license));
 
-      // NEW: Only add these rows if the field exists and is not empty in data_cards.json
       if (card.acquisition_date) {
         addInfoRow(box, 'Acquisition Date', cardText(card.acquisition_date));
       }
-      if (card.known_issues) {
-        addInfoRow(box, 'Known Issues', cardText(card.known_issues));
+      
+      // Dedicated list rendering for known_issues
+      if (card.known_issues && card.known_issues.length > 0) {
+        var issueRow = document.createElement('div');
+        var issueLabel = document.createElement('strong');
+        issueLabel.textContent = 'Known issues:';
+        issueRow.appendChild(issueLabel);
+        
+        var ul = document.createElement('ul');
+        ul.style.marginTop = '4px';
+        ul.style.marginBottom = '8px';
+        ul.style.paddingLeft = '20px';
+        
+        // Handle both array and single string formats
+        var issues = Array.isArray(card.known_issues) ? card.known_issues : [card.known_issues];
+        
+        issues.forEach(function(issue) {
+          var li = document.createElement('li');
+          li.textContent = issue;
+          ul.appendChild(li);
+        });
+        
+        issueRow.appendChild(ul);
+        box.appendChild(issueRow); 
       }
+
       if (card.decision_affected) {
         addInfoRow(box, 'Decision Affected', cardText(card.decision_affected));
       }

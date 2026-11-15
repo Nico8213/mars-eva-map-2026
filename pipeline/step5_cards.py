@@ -72,8 +72,7 @@ card = {
     "resolution": f"{num_text(grid['pixel_size_m'])} m/px",
         "license": "CC0 1.0 Universal (USGS data release page, checked 2026-11-14). The USGS product page also asks users to cite the authors.",
     "known_issues": [
-        grid["known_issue"],
-        sources_issue,
+        "Stereo DTM artifacts and seams may be present in the elevation data.",
         "The slope script uses 1 m spacing in both directions; east-west ground spacing is about 0.95 m, so east-west slope is understated by about 5%.",
     ],
     "confidence_layer": None,

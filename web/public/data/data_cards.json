@@ -9,8 +9,7 @@
     "resolution": "1 m/px",
     "license": "CC0 1.0 Universal (USGS data release page, checked 2026-11-14). The USGS product page also asks users to cite the authors.",
     "known_issues": [
-      "Native projection is equirectangular with standard parallel 0. At latitude about 18.5 deg one east-west pixel spans about 0.95 m on the ground while north-south spans 1 m, so the east-west gradient component of the slope is underestimated by about 5 percent.",
-      "stereo DTM artifacts and seams",
+      "Stereo DTM artifacts and seams may be present in the elevation data.",
       "The slope script uses 1 m spacing in both directions; east-west ground spacing is about 0.95 m, so east-west slope is understated by about 5%."
     ],
     "confidence_layer": null,
