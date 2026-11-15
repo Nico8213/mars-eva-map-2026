@@ -36,7 +36,7 @@ The HiRISE crop uses the window in `config.json`, in projected metres of the nat
 
 ## 3. Setup
 
-Use Python 3.12, as set in the project technical rules. The scripts import `numpy`, `rasterio` and `Pillow` (imported as `PIL`).
+Run with Python 3.13.14; 3.12 not tested. The scripts import `numpy`, `rasterio` and `Pillow` (imported as `PIL`).
 
 Install the pinned packages from `pipeline/requirements.txt` with `pip install -r pipeline/requirements.txt`, as shown below.
 
