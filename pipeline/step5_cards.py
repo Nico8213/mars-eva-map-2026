@@ -71,7 +71,11 @@ card = {
     "acquisition_date": "2006-01-01 to 2019-10-24 (USGS 'Time Period of Content')",
     "resolution": f"{num_text(grid['pixel_size_m'])} m/px",
         "license": "CC0 1.0 Universal (USGS data release page, checked 2026-11-14). The USGS product page also asks users to cite the authors.",
-    "known_issues": [grid["known_issue"], sources_issue],
+    "known_issues": [
+        grid["known_issue"],
+        sources_issue,
+        "The slope script uses 1 m spacing in both directions; east-west ground spacing is about 0.95 m, so east-west slope is understated by about 5%.",
+    ],
     "confidence_layer": None,
     "decision_affected": "Slope blocks cells steeper than 20° and sets the traversal cost of every other cell, so it determines the route path.",
     "verification_status": "candidate",
