@@ -183,3 +183,5 @@ M1（重合度）按容差给出，结论按 `d_tol` = 10 m 的 M1 判定（阈�
 - weak match 的原因未解释。可能的因素（未验证）：参考路径与 DTM 网格的重叠有限，参考终点贴近下边界，PLACES 与 MMGIS 在第 3 段不一致，以及代价函数只用坡度而漫游车选路还考虑别的因素。
 - DTW tie-break (not specified in spec v1.0 before the run): on ties during backtracking, prefer the diagonal, then (i-1, j), then (i, j-1). Implemented in validation/run_validation.py; confirmed by Nico on 2026-11-15, after the v1.0 run. Not changed after seeing results. DTW is a report item with no verdict threshold.
 - DTW normalisation: the report field is dtw_per_path_point_m (called dtw_per_step in the spec). It is the accumulated Euclidean distance along the whole warping path divided by the number of points on that path (not by max(n, m)). Both endpoint cells are counted, so the number of points equals the number of steps plus 1.
+
+validation/out/check_transform.json is the output of validation/check_transform.py. It checks the coordinate transform only. It was created before the validation parameters were locked (its commit message says "params not locked") and is not the comparison with the Perseverance path. The comparison result is validation/out/report.json.
