@@ -14,7 +14,7 @@
         "id": "poi-001",
         "name": "Cliff A",
         "type": "cliff edge",
-        "source": "optical",
+        "source": "hillshade",
         "evidence": "Selected by eye from hillshade.png; not a CRISM detection"
       }
     },
@@ -31,7 +31,7 @@
         "id": "poi-002",
         "name": "Plateau B",
         "type": "plateau",
-        "source": "optical",
+        "source": "hillshade",
         "evidence": "Selected by eye from hillshade.png; not a CRISM detection"
       }
     },
@@ -48,7 +48,7 @@
         "id": "poi-003",
         "name": "Crater C",
         "type": "crater",
-        "source": "optical",
+        "source": "hillshade",
         "evidence": "Selected by eye from hillshade.png; not a CRISM detection"
       }
     },
@@ -65,7 +65,7 @@
         "id": "poi-004",
         "name": "Cone D",
         "type": "cone",
-        "source": "optical",
+        "source": "hillshade",
         "evidence": "Selected by eye from hillshade.png; not a CRISM detection"
       }
     }
