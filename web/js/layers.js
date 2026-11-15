@@ -107,6 +107,17 @@
       addInfoRow(box, 'Product', cardText(card.product));
       addInfoRow(box, 'Resolution', cardText(card.resolution));
       addInfoRow(box, 'License', cardText(card.license));
+
+      // NEW: Only add these rows if the field exists and is not empty in data_cards.json
+      if (card.acquisition_date) {
+        addInfoRow(box, 'Acquisition Date', cardText(card.acquisition_date));
+      }
+      if (card.known_issues) {
+        addInfoRow(box, 'Known Issues', cardText(card.known_issues));
+      }
+      if (card.decision_affected) {
+        addInfoRow(box, 'Decision Affected', cardText(card.decision_affected));
+      }
     });
     return box;
   }
