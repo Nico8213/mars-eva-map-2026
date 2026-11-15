@@ -37,15 +37,14 @@ Rules:
 | Field | Value |
 | --- | --- |
 | Files | `M20_traverse.json` (line segments), `M20_waypoints.json` (points) |
-| Snapshot used | 2026-10-11 snapshot, last sol 1980 [SOURCE: project plan §7.4; §7.6 says validation uses only this snapshot] |
-| Download date | 2026-10-11 [SOURCE: project plan §7.4]. **[TBD-DATA]** confirm against the file's timestamp in `validation/data/`. |
-| Source | Official page: https://science.nasa.gov/mission/mars-2020-perseverance/location-map/ . Direct JSON addresses used by several public projects (found on third-party pages, not on an official NASA document): `https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_traverse.json` and `.../M20_waypoints.json`. They must be checked before use. VN provides the final source link, and the small files go in `validation/data/`. |
-| Integrity | **[TBD-DATA]** SHA-256 of both files. Windows: `certutil -hashfile <file> SHA256`. Mac/Linux: `shasum -a 256 <file>`. Write both hashes here and in `docs/CITATIONS.md`. |
-| Counts to re-check | 703 points, 556 segments. Before computing any length, remove 5 partial segments and 1 duplicate segment [SOURCE: project plan §7.4, Decisions log #3]. **[TBD-DATA]** the script prints the counts; they must match. |
+| Snapshot used | Downloaded by Austin on 2026-11-15, 08:06 to 08:08 (UTC+8), from the two JSON links listed in `docs/research/vn-perseverance-traverse.md`. Files are in `validation/data/` (commit 0dfc5b6 on the `b-routing` branch) with a `SNAPSHOT.md`. Waypoints: 708 points, sol 13 to 2022. Traverse: 559 segments. This snapshot replaces an earlier 2026-10-11 snapshot, which is not available as a file. Only this snapshot is used. [SOURCE: Austin's report, 2026-11-15] |
+| Source | Official page: https://science.nasa.gov/mission/mars-2020-perseverance/location-map/ . That page does not link to the two JSON files (checked by VN). The JSON addresses used are the ones in `docs/research/vn-perseverance-traverse.md`; they were found on third-party pages and should be described as such in `docs/CITATIONS.md`. |
+| Integrity | SHA-256 (from Austin, 2026-11-15). `M20_waypoints.json`: BD143EE69241229926ABD373E6305B8BBB326D6B5A7B4A8D6935262696F93DC4 . `M20_traverse.json`: 6DDD0ECE913D75B45D105946082F95ED84E68F4718B68D32A4421DC30877E7E6 . Also record these in `docs/CITATIONS.md`. |
+| Counts to re-check | 708 waypoints and 559 traverse segments (above). An earlier snapshot had 703 points and 556 segments, and 5 partial segments and 1 duplicate segment were to be removed. Those numbers belong to the old snapshot. **[TBD-DATA]** Austin lists which features of the new snapshot are "partial" or "duplicate", states the rule used to decide, and writes the rule and the counts into `params.json` before running. Nico approves the rule. |
 | Authoritative citation | PLACES, Release 15, sols 0–1762 [SOURCE: project plan §7.4]. |
 | Licence | **[TBD-DATA]** record what NASA states for this data in `docs/CITATIONS.md` (columns: Name, Organization, Version, URL, Accessed, License, Used in). |
 
-New downloads are saved separately and never replace the 2026-10-11 snapshot (project plan §7.6).
+Later downloads are saved separately and never replace the snapshot above.
 
 ### 4.3 Coordinate system and distance
 **What the terrain file is.** [SOURCE: USGS label of the full-size file, https://astrogeology.usgs.gov/ckan/dataset/381ba037-d8a9-4cea-86be-374e4951afe3/resource/bd39aeaf-231d-4732-b333-7636bce607ff/download/jez_hirise_soc_006_dtm_molatopography_deltageoid_1m_eqc_latts0_lon0_blend40.lbl ; file and version as downloaded by Xin En on 2026-11-14]
@@ -70,24 +69,25 @@ New downloads are saved separately and never replace the 2026-10-11 snapshot (pr
 7. Route length (shown on the web page and used in validation) is computed from route vertex coordinates in the local projection, with one shared function. It is not computed by counting cells.
 8. The height reference (`DeltaGeoid` in the file name) does not matter for planimetric distance. If a 3D "surface length" is ever reported, label it separately and state how it was computed.
 
-**Known limitation of the slope data (decision).** The slope script uses a spacing of 1 m on both axes. At Jezero one map metre east-west is about 0.95 m on the ground (cos of latitude 18.5° is about 0.948), so the east-west part of the gradient is understated by about 5%. Decision: `slope.npy` is **not** recomputed for v1.0, because the route and validation runs use the current file and the parameters were locked before running (4.1). [DESIGN]
-- The limitation is written in `data/processed/sources.md`, in `grid.json` (`known_issue`), in the slope data card, in the validation report, and on the project page.
+**Known limitation of the slope data (decision).** The slope script uses a spacing of 1 m on both axes. At Jezero one map metre east-west is about 0.95 m on the ground (cos of latitude 18.5° is about 0.948), so the east-west part of the gradient is understated by about 5%. Decision (Nico, 15 Nov 2026): `slope.npy` is **not** recomputed for v1.0. Reasons: the limitation is documented consistently, features are frozen at 12:00 on 15 Nov, and the 20° limit is already a team heuristic. At the time of this decision no validation number had been produced. [DESIGN]
+- The limitation is written in `data/processed/sources.md`, in `grid.json` (`known_issue`), in the HiRISE DTM data card, in the validation report, and on the project page.
 - Effect, stated plainly: a slope facing east-west is computed a little lower than it is, so a few cells close to the 20° limit may be treated as passable when a corrected calculation would block them.
+- `params.json` records the SHA-256 of `slope.npy` and `grid.json`, so the lock covers the exact terrain data used.
 - A corrected slope may be run later only as a separate, labelled "v1.1 sensitivity run" that is declared in `params.json` first. The v1.0 report is kept next to it, and both are reported. [DESIGN]
 
-**Latitude and longitude in the pipeline outputs.** The pipeline scripts (`step2_slope.py`, `step3_layers.py`, `step4_poi.py`) convert corner coordinates to latitude/longitude with a fallback ellipsoid (`+a=3396190 +b=3376200`), while `grid.json` describes a sphere. Those latitude/longitude values are informational: the web page and the routing code work in projected coordinates. **Validation must not read them.** Validation converts the rover's latitude/longitude with the sphere of this section. [DESIGN]
+**Latitude and longitude in the pipeline outputs.** The pipeline scripts used a fallback ellipsoid (`+a=3396190 +b=3376200`) because `EPSG:49900` was not available on the data machine. Since commit 8faffdf (branch `a-data`) the scripts use the sphere (`+R=3396190`) and `coordinate_notes` in `grid.json` says so. Xin En reports that the top-left latitude/longitude did not change after this, and that `slope.npy`, the layer extents and the routes are unaffected. Those latitude/longitude values stay informational: the web page and the routing code work in projected coordinates. Validation converts the rover's latitude/longitude itself, with the sphere of this section, and does not read them. [DESIGN]
 
 ### 4.4 Landing site, first point, last point, and clipping the traverse
 Preparing the reference line:
-1. Remove the 5 partial segments and 1 duplicate segment first (4.2). [SOURCE: project plan §7.4]
+1. Remove the "partial" and "duplicate" segments first, using the rule written in `params.json` (4.2).
 2. Order everything by **ascending sol**. Do not trust the order of features in the file. The script must check that sol never decreases along the line. **[TBD-DATA]** confirm which file carries `sol` (and `dist_total`) for each feature; these field names were only seen on third-party pages. [DESIGN]
 
 Definitions:
-- **Landing site** = the point with the smallest sol in `M20_waypoints.json`. It should be sol 0, the touchdown location, commonly called "Octavia E. Butler Landing". **[TBD-DATA]** the script prints sol, index and coordinates; copy them here. If the smallest sol is not 0, stop and ask Nico. [DESIGN]
+- **Landing site and first reference point.** The new snapshot's waypoints start at **sol 13**, not sol 0, so the touchdown point is not among the waypoints. [SOURCE: Austin's report] Rule: **[TBD-DATA]** Austin first checks whether the traverse line has a vertex at sol 0 (the touchdown location, commonly called "Octavia E. Butler Landing"). If yes, that vertex is the landing site and the first path point. If no, the first path point is the earliest point (smallest sol) of the ordered reference that is inside the extent, and the report states plainly that the validation starts at that sol and not at touchdown. The program prints sol, index and coordinates. Do not type coordinates from memory. [DESIGN]
 - **Extent** = the rectangular bounds of `grid.json`, in the DTM projection of 4.3. A traverse point is "inside" if it lies within those bounds. [DESIGN]
 - **Validation reference** = the first uninterrupted run of the ordered traverse that is inside the extent, starting at the landing site. If the landing site is outside the extent, stop and ask Nico. [DESIGN]
   - Reason: a route needs one continuous reference. If the rover leaves the grid and comes back, the part outside has no terrain data, and the part after re-entry would not connect to the start.
-- **First path point** = the landing site.
+- **First path point** = the landing site if the traverse has one, otherwise the earliest reference point (see the previous item).
 - **Last path point** = the last vertex of the validation reference before the traverse first leaves the extent (the largest sol in the run; if two points tie, the one farther along the path, for example the larger `dist_total`). It is a real rover position, not a point where a line crosses the boundary. No boundary-intersection point is created. [DESIGN]
 - Any part of the traverse that is inside the extent but after re-entry is **not compared**. The report states its number of points and length. [DESIGN]
 - The traverse is clipped by this rule only. No hand-drawn cuts. The terrain is not cropped here, because `grid.json` is already the cropped terrain made by the data pipeline.
@@ -166,7 +166,9 @@ Committed in `validation/params.json` before the first validation run and not ch
 - tolerances: `d_tol` = 10 m, sensitivity 5 m and 25 m
 - verdict thresholds on M1: 0.80 and 0.50
 - `r_snap` = 3 cells
-- traverse files: exact names, snapshot date, download date and SHA-256 (4.2), recorded in the report
+- traverse files: exact names, download time and SHA-256 (4.2), recorded in the report
+- SHA-256 of `slope.npy` and `grid.json`
+- the rule and counts for "partial" and "duplicate" traverse segments (4.2)
 - terrain file and version, DTM projection, and the local distance projection with its 1% check (4.3)
 
 ### 4.9 Comparison segment and caveat
@@ -205,12 +207,18 @@ Austin may rename the keys. Every line must exist in some form. `null` values ar
   "reference": {
     "traverse_file": "M20_traverse.json",
     "waypoints_file": "M20_waypoints.json",
-    "snapshot_date": "2026-10-11",
-    "last_sol_in_file": 1980,
-    "sha256_traverse": null,
-    "sha256_waypoints": null,
-    "remove_partial_segments": 5,
-    "remove_duplicate_segments": 1
+    "download_time": "2026-11-15 08:06-08:08 UTC+8",
+    "waypoints_count": 708,
+    "traverse_segments": 559,
+    "min_sol_in_waypoints": 13,
+    "max_sol_in_waypoints": 2022,
+    "sha256_traverse": "6DDD0ECE913D75B45D105946082F95ED84E68F4718B68D32A4421DC30877E7E6",
+    "sha256_waypoints": "BD143EE69241229926ABD373E6305B8BBB326D6B5A7B4A8D6935262696F93DC4",
+    "sha256_slope_npy": null,
+    "sha256_grid_json": null,
+    "partial_duplicate_rule": null,
+    "remove_partial_segments": null,
+    "remove_duplicate_segments": null
   },
   "clip": { "extent": "grid.json bounds", "reference_run": "first uninterrupted run from landing site", "landing_site": "min sol in waypoints, expected sol 0" },
   "crs": {
