@@ -6,7 +6,6 @@
   var Cockpit = window.Cockpit;
 
   // The CRS name is not decided yet (see docs/INTERFACES.md). Do not invent one.
-  // The CRS name is not decided yet (see docs/INTERFACES.md). Do not invent one.
   Cockpit.crsLabel = 'Equirectangular (true-scale latitude 0), Mars sphere R = 3396190 m';
 
   // Unit of the map coordinates: 'm' (projected metres) or 'deg' (geographic degrees).
@@ -72,8 +71,9 @@
     map.fitBounds(bounds);
 
     setTimeout(function() {
-    map.invalidateSize();
-}, 500);
+      map.invalidateSize();
+    }, 500);
+
     // Allow zooming out a little past the full view and in a few levels, so the
     // map is not lost and the image is not zoomed into blur forever.
     var fitZoom = map.getZoom();
@@ -97,6 +97,13 @@
     // layers.js builds the layer menu when it receives this event.
     document.dispatchEvent(new CustomEvent('cockpit:layers-loaded', { detail: layerEntries }));
     announceMapReady();
+    
+    // 加载完成后显示静态快照状态
+    var statusDiv = document.getElementById('status');
+    if (statusDiv) {
+      statusDiv.textContent = 'Data loaded (static snapshot)';
+    }
+
   }).catch(function (err) {
     Cockpit.layerEntries = [];
     fitToLayers([]);
