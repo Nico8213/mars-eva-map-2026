@@ -105,6 +105,25 @@ body {
   font-size: 1rem;
 }
 
+.legend {
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.legend-swatch {
+  flex: 0 0 2.5rem;
+  height: 4px;
+  border-radius: 2px;
+}
+
 .poi-list {
   margin: 0;
   padding: 0;
