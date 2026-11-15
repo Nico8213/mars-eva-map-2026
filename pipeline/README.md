@@ -23,7 +23,7 @@ The pipeline produces these files:
 
 Raw inputs are not in the repository. Keep them in `local_only/`.
 
-The paths in `pipeline/config.json` are relative to the repository root. The config points to `../local_only/`, which is a folder next to the repository (for example `C:\SpaceApps2026\local_only\`), not a folder inside it. Place the files at the paths below, or change the paths in `config.json`. The location is TBD: the team has not decided it.
+The paths in `pipeline/config.json` are relative to the repository root. The config points to `../local_only/`, which is a folder next to the repository (for example `C:\SpaceApps2026\local_only\`), not a folder inside it. Place the files at the paths below, or change the paths in `config.json`. On the machine that ran the pipeline, the folder is C:\SpaceApps2026\local_only\ and holds hirise_raw\ and ctx_raw\.
 
 | Input | Product name | Version | DOI | Config key and path |
 | --- | --- | --- | --- | --- |
@@ -104,9 +104,9 @@ Order notes:
 ## 5. Known limitations
 
 - **East-west slope is underestimated by up to about 5 percent.** The gradient uses 1 m spacing in both directions. At latitude about 18.5 degrees, one east-west pixel spans about 0.95 m on the ground. The correction is not applied, so the routing validation inputs stay fixed (see `sources.md`).
-- **Points of interest are selected by eye** from `hillshade.png`. None comes from a CRISM detection. All four rows in `poi_manual.csv` have source `optical`.
+- **Points of interest are selected by eye** from `hillshade.png`. None comes from a CRISM detection. All four rows in `poi_manual.csv` have source `hillshade` (the image the point was selected from, per INTERFACES.md).
 - EPSG:49900 is not in the PROJ database on the machine used to build the data, so the scripts used the sphere fallback (+proj=longlat +R=3396190 +no_defs, radius 3396190 m).
-- **`slope.npy` is about 64 MB** (4000 x 4000 float32, 64,000,000 bytes). It stays in `data/processed/` so routing can run without the 1.84 GB DTM. This file is above the 50 MB per-file limit in the project technical rules. How to handle that is TBD: the team has not decided.
+- **`slope.npy` is about 64 MB** (4000 x 4000 float32, 64,000,128 bytes). It stays in `data/processed/` so routing can run without the 1.84 GB DTM. This file is above the 50 MB per-file limit in the project technical rules. The file is committed in data/processed/ and stays in the repository because the validation report references it by hash (per Nicole). GitHub warned on push that it is 61.04 MiB, above the recommended 50 MB, but below the 100 MB hard limit.
 - **DTM known issue:** stereo DTM artifacts and seams (from `sources.md`).
 - **CTX known issues** (from `step5_cards.py`): individual CTX images have an average horizontal displacement of 9.6 m. A small gap in the northwest corner of the full mosaic was filled with an image orthorectified to an HRSC DTM.
 
@@ -114,5 +114,12 @@ Order notes:
 
 - **HiRISE DTM:** CC0 1.0 Universal (USGS data release page, checked 2026-11-14). Cite the authors: Fergason, R. L., et al. (2020), DOI 10.5066/P9REJ9JN. The USGS product page also asks users to cite the authors. The full entry is in `docs/CITATIONS.md`.
 - **CTX mosaic:** CC0 1.0 Universal per the USGS data release page (DOI 10.5066/P9GV1ND3), checked 2026-11-14, downloaded 2026-11-14. Cite the authors; see `docs/CITATIONS.md`.
-- **Python packages** (numpy, rasterio, Pillow): licenses TBD. See `docs/CITATIONS.md`.
+- **Python packages** (numpy, rasterio, Pillow):
+  - numpy 2.5.4: BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0;
+  - rasterio 1.5.2: BSD-3-Clause;
+  - Pillow 13.0.0: MIT-CMU.
+
+  scikit-image 0.27.0rc1 (a pre-release; latest stable is 0.26.0, not tested) and scipy 1.18.1 declare the classifier 'License :: OSI Approved :: BSD License'; see each project's LICENSE for the exact BSD variant.
+
+  See `docs/CITATIONS.md`.
 - **Pipeline code:** Apache 2.0, as stated in the repository `LICENSE`.
