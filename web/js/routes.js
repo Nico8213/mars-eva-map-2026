@@ -82,29 +82,43 @@
     });
   }
 
+  // Route data may not exist yet. A missing or unreadable index or route file
+  // (HTTP 404, network error, invalid JSON) is not an error for the user: log one
+  // line and leave the map as it is.
+  var NO_DATA_MESSAGE = 'No route data available yet';
+
   function loadRoutes() {
     var map = Cockpit.map;
     var group = L.layerGroup();
-    Cockpit.routeLayer = group;
+    var drawn = 0;
 
     return Cockpit.loadJson('routes/index.json').then(function (files) {
+      if (!Array.isArray(files)) { throw new Error('routes/index.json is not a list'); }
       // One failed file must not stop the others.
       return Promise.allSettled(files.map(function (file) {
         return Cockpit.loadJson('routes/' + file).then(function (feature) {
           if (!feature || !feature.geometry || feature.geometry.type !== 'LineString') {
-            throw new Error('Could not load routes/' + file + ': not a LineString Feature');
+            // The file loaded but has the wrong content: tell the user.
+            Cockpit.showError('Route file is not a LineString Feature: routes/' + file);
+            return;
           }
           drawRoute(feature, group);
+          drawn += 1;
         });
       }));
     }).then(function (results) {
-      results.forEach(function (result) {
-        if (result.status === 'rejected') { Cockpit.showError(result.reason.message); }
-      });
+      // A route file that cannot be loaded is skipped; the others are still drawn.
+      var failedFiles = results.filter(function (r) { return r.status === 'rejected'; });
+      if (failedFiles.length || drawn === 0) {
+        console.log(NO_DATA_MESSAGE);
+      }
+      if (drawn === 0) { return; }
+      Cockpit.routeLayer = group;
       group.addTo(map);
       addToggle(group);
-    }).catch(function (err) {
-      Cockpit.showError(err.message);
+    }).catch(function () {
+      // Index missing or unreadable. Exit without throwing.
+      console.log(NO_DATA_MESSAGE);
     });
   }
 
