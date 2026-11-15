@@ -5,14 +5,18 @@
 
   var Cockpit = window.Cockpit;
 
-  function isMissing(value) {
-    return value === undefined || value === null;
-  }
+  var ROUTE_COLOR = '#ff7043';
+  var ROUTE_WEIGHT = 4;
+  var ROUTE_WEIGHT_HOVER = 7;
+  var CASING_WEIGHT = 8;
+  var CASING_WEIGHT_HOVER = 11;
 
-  function formatValue(value, unit) {
-    if (isMissing(value)) { return 'n/a'; }
-    if (Array.isArray(value)) { return value.length ? value.join(', ') : 'n/a'; }
-    return unit ? value + ' ' + unit : String(value);
+  // The only popup fields. Labels are these property names; values are read from the feature.
+  var POPUP_KEYS = ['name', 'length_m', 'max_slope_deg', 'slope_threshold_deg', 'data_used', 'cost_function'];
+
+  function valueText(value) {
+    if (value === undefined || value === null) { return ''; }
+    return Array.isArray(value) ? value.join(', ') : String(value);
   }
 
   function addRow(parent, label, text) {
@@ -26,16 +30,9 @@
 
   function buildPopup(props) {
     var box = document.createElement('div');
-    var title = document.createElement('h3');
-    title.className = 'popup-title';
-    title.textContent = 'Route ' + formatValue(props.name);
-    box.appendChild(title);
-    addRow(box, 'Length', formatValue(props.length_m, 'm'));
-    addRow(box, 'Max slope', formatValue(props.max_slope_deg, 'deg'));
-    addRow(box, 'Slope threshold', formatValue(props.slope_threshold_deg, 'deg'));
-    addRow(box, 'Data used', formatValue(props.data_used));
-    addRow(box, 'Start POI', formatValue(props.start_poi));
-    addRow(box, 'End POI', formatValue(props.end_poi));
+    POPUP_KEYS.forEach(function (key) {
+      addRow(box, key, valueText(props[key]));
+    });
     return box;
   }
 
@@ -61,21 +58,47 @@
       coordsToLatLng: toLatLng,
       pane: 'routes',
       interactive: false,
-      style: function () { return { color: '#000', weight: 8, opacity: 0.8 }; }
+      style: function () { return { color: '#000', weight: CASING_WEIGHT, opacity: 0.8 }; }
     });
     var line = L.geoJSON(feature, {
       coordsToLatLng: toLatLng,
       pane: 'routes',
-      style: function () {
-        // A route click must not also open the layer popup.
-        return { color: '#ff7043', weight: 4, opacity: 1, bubblingMouseEvents: false };
-      },
+      // A route click must not also open the layer popup.
+      bubblingMouseEvents: false,
+      style: function () { return { color: ROUTE_COLOR, weight: ROUTE_WEIGHT, opacity: 1 }; },
       onEachFeature: function (f, layer) {
         layer.bindPopup(function () { return buildPopup(f.properties || {}); });
+        layer.on('mouseover', function () {
+          line.setStyle({ weight: ROUTE_WEIGHT_HOVER });
+          casing.setStyle({ weight: CASING_WEIGHT_HOVER });
+        });
+        layer.on('mouseout', function () {
+          line.setStyle({ weight: ROUTE_WEIGHT });
+          casing.setStyle({ weight: CASING_WEIGHT });
+        });
       }
     });
     group.addLayer(casing);
     group.addLayer(line);
+  }
+
+  // Legend entry for routes. Only the label and the note below are written here.
+  function addLegendItem() {
+    var list = document.getElementById('legend');
+    if (!list) { return; }
+    var item = document.createElement('li');
+    var swatch = document.createElement('span');
+    swatch.className = 'legend-swatch';
+    swatch.style.background = ROUTE_COLOR;
+    swatch.setAttribute('aria-hidden', 'true');
+    var name = document.createElement('strong');
+    name.textContent = 'Route';
+    var note = document.createElement('span');
+    note.textContent = 'slope constraint only';
+    item.appendChild(swatch);
+    item.appendChild(name);
+    item.appendChild(note);
+    list.appendChild(item);
   }
 
   function addToggle(group) {
@@ -129,6 +152,7 @@
       Cockpit.routeLayer = group;
       group.addTo(map);
       addToggle(group);
+      addLegendItem();
     }).catch(function () {
       console.log(NO_DATA_MESSAGE);
     });
