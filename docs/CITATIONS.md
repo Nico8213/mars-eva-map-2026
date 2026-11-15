@@ -1,39 +1,47 @@
-# Citations
+# Martian Map
 
-<!-- Team note, delete before final submission: every row in the first table must have no TBD left. Move or delete unused rows. Search this file for "TBD" and "PRD" before submitting. -->
+Martian Map is a static web map prototype for planning an extravehicular activity (EVA) at Jezero crater, Mars. It was built for the NASA Space Apps Challenge 2026 challenge "Interplanetary Survival Guide: Martian Map". The map shows a slope layer, a hillshade and an optical image on one map, four points of interest, and a data card for each layer with its source, version, resolution, license and known issues.
 
-Every source used in this project is listed here, including open and freely available ones. Columns: Name, Organization, Version, URL, Accessed, License, Used in.
+## How to view the website
 
-## 1. Data and software used
+- Website: https://nico8213.github.io/mars-eva-map-2026/
+- Video (30 s): TBD
+- Local preview steps: see `docs/REPRODUCE.md`
 
-| Name | Organization | Version | URL | Accessed | License | Used in |
-| --- | --- | --- | --- | --- | --- | --- |
-| Mars 2020 Terrain Relative Navigation HiRISE DTM Mosaic, Jezero crop (Fergason, R. L., et al., 2020). File: JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40.tif | USGS Astrogeology Science Center | 006 (taken from the file name), 1 m/px | https://doi.org/10.5066/P9REJ9JN ; product page: https://astrogeology.usgs.gov/search/map/mars_2020_terrain_relative_navigation_hirise_dtm_mosaic | 2026-11-14 (downloaded) | CC0 1.0 Universal (stated at https://www.usgs.gov/data/mars-2020-terrain-relative-navigation-hirise-dtm-mosaic); the USGS product page also asks users to cite the authors | Terrain layer (F1); slope raster for route cost (F3) |
-| Mars 2020 Terrain Relative Navigation Context Camera Orthorectified Image Mosaic, Jezero crop (Fergason, R. L., et al., 2020). File: JEZ_ctx_B_soc_008_orthoMosaic_6m_Eqc_latTs0_lon0.tif | USGS Astrogeology Science Center | 008 (taken from the file name), about 6 m/px | https://doi.org/10.5066/P9GV1ND3 ; product page: https://astrogeology.usgs.gov/search/map/mars_2020_terrain_relative_navigation_context_camera_orthorectified_image_mosaic | 2026-11-14 (downloaded) | CC0 1.0 Universal (stated at https://www.usgs.gov/data/mars-2020-terrain-relative-navigation-context-camera-orthorectified-image-mosaic); the USGS product page also asks users to cite the authors | Optical layer (F1); visual context only, not used in route cost |
-| CRISM data archived at the PDS (background reference; no CRISM product is used in the pipeline, and points of interest were selected by eye from hillshade.png, not from CRISM) | NASA PDS Geosciences Node; MRO CRISM team (JHU/APL) | PDS3 targeted reduced data records, MRO-M-CRISM-3-RDR-TARGETED-V1.0, DOI 10.17189/1519573 (archive reference only) | https://doi.org/10.17189/1519573 ; https://pds-geosciences.wustl.edu/missions/mro/crism.htm | 2026-11-14 | No license text on the product pages. The PDS Geosciences Node FAQ states that PDS data sets are in the public domain (https://pds-geosciences.wustl.edu/faq.html). The U.S. government data catalog record carries the public domain label. | Background only; not used in route cost and not used to place points of interest |
-| JMARS, "Hydrous Mineral Detections (CRISM)" layer | Mars Space Flight Facility, Arizona State University | Version not recorded | https://jmars.mars.asu.edu/ | TBD (date the layer was viewed, from Xin En) | JMARS software: GPL. The Terms of Use and Citation Policy asks that JMARS be acknowledged. No license is stated for the data layer. | Consulted only, to check that the layer shows unlabeled markers and no mineral names. Not used to place points of interest. No JMARS data or screenshots are included in the repository or the submission |
-| Perseverance traverse and waypoints (M20_traverse.json, M20_waypoints.json) | NASA/JPL-Caltech (Mars 2020 map layers) | Snapshot downloaded 2026-11-15 (UTC+8). Waypoints: 708 points, sol 13 to 2022, SHA-256 BD143EE69241229926ABD373E6305B8BBB326D6B5A7B4A8D6935262696F93DC4. Traverse: 36,661 points, 559 segments, sol 14 to 2022, SHA-256 6DDD0ECE913D75B45D105946082F95ED84E68F4718B68D32A4421DC30877E7E6 | Official page: https://science.nasa.gov/mission/mars-2020-perseverance/location-map/ . File addresses (not linked from the official page; found on third-party pages): https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_traverse.json and https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_waypoints.json | 2026-11-15 | Not stated for the files. NASA media usage guidelines apply (generally not copyrighted; https://www.nasa.gov/nasa-brand-center/images-and-media/) | Cross-check for validation (F7). The latitude type of these files is not stated in official documentation |
-| Mars 2020 Rover PLACES Bundle (best_interp.csv) | NASA PDS Geosciences Node; Mars 2020 project (JPL) | Release 16, posted 2026-08-11, sols 0-1897. Downloaded file: 8,684,070 bytes, 33,459 lines including the header, SHA-256 58FBC62F2676195A00B40B2DA53A797A70284A8D2344B288C999D325B7CCB4CC | https://pds-geosciences.wustl.edu/missions/mars2020/places.htm ; SIS: https://pds-geosciences.wustl.edu/m2020/urn-nasa-pds-mars2020_rover_places/document/Mars2020_Rover_PLACES_PDS_SIS.pdf | 2026-11-15 (downloaded 09:42:05, UTC+8) | Not stated on the page. PDS general statement: public domain. The interface specification carries a Caltech copyright notice with government sponsorship acknowledged. | Primary validation reference (F7); columns used: planetocentric_latitude and longitude. Planetocentric latitude on a sphere of radius 3396190 m; height datum MOLA areoid (Rover PLACES SIS v1.0, sections 5.1.3, 5.2.3 and 3.9.3; checked by VN, 2026-11-15) |
-| MEDA Radiation and Dust Sensor (RDS) data | NASA PDS Atmospheres Node (Rodriguez-Manfredi et al., 2021) | MEDA bundle version 6.0 (release 2026-08-11), DOI 10.17189/1522849; data from 19 Feb 2021, ongoing | https://pds-atmospheres.nmsu.edu/data_and_services/atmospheres_data/PERSEVERANCE/meda.html | 2026-11-14 | No MEDA-specific license text found. The PDS Geosciences Node FAQ states that PDS data sets are in the public domain; the Atmospheres Node has not been checked for its own statement. | Environment reference panel (F9). RDS uses UV photodiodes: it measures sunlight (UV), not radiation dose |
-| MEDA derived dataset (TIRS, PS, RHS) | NASA PDS Atmospheres Node | MEDA bundle version 6.0, DOI 10.17189/1522849; coverage sol 1-1859 (to verify) | https://pds-atmospheres.nmsu.edu/data_and_services/atmospheres_data/PERSEVERANCE/meda.html | 2026-11-14 | Same as the RDS row: no MEDA-specific license text found; PDS general statement is public domain | Atmospheric background, one sentence only |
-| Mastcam-Z aerosol optical depth dataset, Jezero | Lemmon, M., Space Science Institute (Boulder, CO), Mendeley Data | Version 2, published 7 Apr 2026, DOI 10.17632/gktjp9jptb.2 | https://data.mendeley.com/datasets/gktjp9jptb/2 | 2026-11-14 | CC BY 4.0 (confirmed on the dataset page) | Environment reference panel, dust (F9) |
-| Curiosity RAD dose data, Gale crater (not Jezero): Hassler et al., 2014 | Hassler, D. M., Zeitlin, C., et al. (Southwest Research Institute); published by AAAS in Science | Science 343(6169), 2014, DOI 10.1126/science.1244797 | https://ntrs.nasa.gov/citations/20180007641 | 2026-11-14 | Copyright AAAS. Numbers are cited with the full reference; no figures or tables are reproduced | Analogy reference only; not a Jezero value |
-| Leaflet | Volodymyr Agafonkin, CloudMade (per LICENSE) | 1.9.4+v1.d15112c (per leaflet.js header) | https://leafletjs.com/ | TBD | BSD 2-Clause (LICENSE file kept in web/vendor/leaflet/) | Web map (web/vendor/leaflet) |
-| Python packages listed in the requirements files (including scikit-image, added for route computation) | Various open-source authors | As pinned in requirements files | https://pypi.org/ | TBD | TBD (list each package and its license) | data pipeline, routing, validation |
+## Data and known limits
 
-## 2. Candidate sources (delete a row if it is not used in the submission)
+- Terrain: USGS Mars 2020 Terrain Relative Navigation HiRISE DTM mosaic, version 006, 1 m/px (CC0 1.0; please cite Fergason et al., 2020).
+- Optical layer: USGS CTX orthomosaic, 6 m/px, version 008. It is used as visual background only and does not affect route cost.
+- Routing uses a slope constraint only. Spectral data (CRISM) are used as reference only. Points of interest were selected by eye from the hillshade; they are not CRISM detections.
+- Known issue: the slope script uses 1 m spacing in both directions. East-west ground spacing is about 0.95 m, so east-west slope is understated by about 5%. The raster was not recomputed for v1.0.
+- Coordinates: the DTM is equirectangular with true-scale latitude 0 on a Mars sphere of radius 3396190 m. The 18.4663 degree standard parallel of the PLACES map convention is not used.
+- Validation reference: Mars 2020 Rover PLACES `best_interp.csv` (Release 16). The NASA/JPL MMGIS traverse files are used only as a cross-check. Validation parameters are locked in `validation/params.json` before any comparison is run.
+- The web page shows a static data snapshot, not live data.
 
-| Name | Organization | Version | URL | Accessed | License | Used in |
-| --- | --- | --- | --- | --- | --- | --- |
-| HiRISE orthorectified image mosaic | USGS Astrogeology Science Center | TBD, 0.25 m/px | TBD | TBD | TBD | Candidate optical layer; delete if unused |
-| MOLA-HRSC blended DEM | TBD | TBD, 200 m/px | TBD | TBD | TBD | Regional background only; not used for slope |
-| MRO MCS DDR V6.2 | TBD | V6.2 | TBD | TBD | TBD | Environment reference candidate; Jezero coverage and license unchecked |
+## Data sources
 
-## 3. Literature cited
+See `docs/CITATIONS.md` for every data source, version and license.
 
-| Reference | Used in |
-| --- | --- |
-| Carter, J., Poulet, F., Bibring, J.-P., Mangold, N., Murchie, S. (2013). Hydrous minerals on Mars as seen by the CRISM and OMEGA imaging spectrometers: Updated global view. Journal of Geophysical Research: Planets, 118(4), 831-858. https://doi.org/10.1029/2012JE004145 (cited by the JMARS layer panel; copyright AGU). Title, authors, journal, volume, pages and DOI checked by VN on 2026-11-15 against independent records (docs/research/vn-carter-2013-citation.md) | Background for the JMARS hydrous-mineral layer |
-| Seelos, F. P., et al. (2023). The CRISM investigation in Mars orbit: Overview, history, and delivered data products. Icarus. https://authors.library.caltech.edu/records/h6pv6-fhf02 | Background on CRISM data |
-| Brown, A. J., Viviano, C. E., Goudge, T. A. (2020). Olivine-carbonate mineralogy of the Jezero crater region. Journal of Geophysical Research: Planets. https://doi.org/10.1029/2019JE006011 | Background on CRISM coverage of Jezero |
-| Minetti, A. E., et al. (2002). Energy cost of walking and running at extreme uphill and downhill slopes. https://iris.unibs.it/handle/11379/540545 | Cost function (routing spec, section 2) |
+## Folder guide
+
+- `data/`: Data folders. `data/processed/` holds the files the website and routing read (see `docs/INTERFACES.md`). Raw data is kept out of the repository (`local_only/` or `data/raw/`).
+- `pipeline/`: Python scripts that process the raw data into processed files.
+- `routing/`: Route planning scripts. Route output goes to `routing/out/`.
+- `validation/`: Validation scripts. Validation output goes to `validation/out/`.
+- `web/`: Static HTML and JavaScript website. `web/vendor/` holds Leaflet, and `web/public/data/` holds data files served to the site.
+- `tools/`: Helper scripts.
+- `docs/`: Project documents, including `INTERFACES.md`, `REPRODUCE.md` and `CITATIONS.md`. `docs/research/` holds research notes, and `docs/ai_log/` holds each team member's AI log.
+- `.kiro/steering/`: Steering files that give project context to Kiro.
+- `.github/workflows/`: GitHub Actions workflow files.
+
+## Reproducing the results
+
+See `docs/REPRODUCE.md`.
+
+## Use of AI tools
+
+AI tools were used during development. The logs are in `docs/ai_log/`.
+
+## License
+
+This project is licensed under the Apache License 2.0. See `LICENSE`. Third-party content is listed in `docs/CITATIONS.md`.
