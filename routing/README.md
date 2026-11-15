@@ -122,8 +122,8 @@ Generated routes in `routing/out/` (`length_m` and `max_slope_deg` read from the
 
 ## 未完成
 
-- 毅力号（Perseverance）轨迹对照验证：要等快照文件。
-- `validation/params.json` 尚未锁定：其中的 `[TBD-DATA]` 还没填完。
+- [x] 毅力号（Perseverance）轨迹对照验证：已真实运行一次，结果见 `validation/out/report.json`。
+- [x] `validation/params.json` 已锁定（`d1965fd`，2026-11-15 12:52:46 +0800）。
 
 ## 已知局限
 
@@ -131,3 +131,53 @@ Generated routes in `routing/out/` (`length_m` and `max_slope_deg` read from the
 - **东西向坡度偏低**：`grid.json` 的 `known_issue` 记录，原生投影是标准纬线为 0 的等距圆柱投影。在纬度约 18.5° 处，东西向一个像素在地面上约 0.95 m，南北向为 1 m，因此坡度的东西向梯度分量约低估 5%。`route.py` 不做修正。
 - **HiRISE 置信度图层 v1 不用**：代价只来自坡度，`data_used` 固定为 `["slope"]`。
 - **最大坡度按像素中心取值**：`max_slope_deg` 只取路径经过的像素中心处的坡度值，不是线段上的连续最大值。
+- **毅力号参考路径大部分顶点在 DTM 网格外**：约 74% 的顶点落在 DTM 网格之外。该数字来自 `validation/check_transform.py` 的输出，不在 `report.json` 里。
+- **参考终点在最底行**：参考终点位于网格最底一行，离下边界 0.837908506160602 m（`report.json` 的 `reference_end_distance_to_lower_boundary_m`，不到 1 m）。参考路径在此处离开网格，不是自然停下。
+- **PLACES 第 3 段与 MMGIS 不一致**：PLACES 第 3 段（sol 353-386）为 2147.661 m，MMGIS 为 2716.261 m。原因未解释，没有因此改动任何参数。
+
+## 验证（对照毅力号轨迹）
+
+### 复现
+
+在仓库根目录执行：
+
+```powershell
+.\.venv\Scripts\python.exe validation\check_transform.py
+.\.venv\Scripts\python.exe validation\run_validation.py
+```
+
+`run_validation.py` 只能跑一次：`validation/out/report.json` 已存在时脚本自动中止。参数锁定在提交 `d1965fd`，运行日期 2026-11-15。
+
+### 结果摘要
+
+以下数字全部取自 `validation/out/report.json`，未重新计算。
+
+| 项目 | 值 |
+|---|---|
+| 状态（`results.status`） | `ok` |
+| 结论（`results.verdict`） | `weak match` |
+| 路线长度 `route_length_m` | 726.9999252239116 m |
+| 路线代价 `route_cost_find_path` | 738.766393561179 |
+| 参考点数 | 899（下标 0 到 898） |
+| 落在阻挡格上的参考点 | 0 / 899 |
+| M0 平均距离 `mean_m` | 49.445414996329326 m |
+| M0 最大距离 `max_m` | 129.4524803786412 m |
+| M2 中位数 `median_m` | 34.27634306755558 m |
+| M2 第 95 百分位 `p95_m` | 127.30067925012663 m |
+| M3 `dtw_per_path_point_m` | 63.67146791146537 m |
+
+M1（重合度）按容差给出，结论按 `d_tol` = 10 m 的 M1 判定（阈值：不低于 0.80 为 close match，0.50 到 0.80 为 partial match，低于 0.50 为 weak match）：
+
+| `d_tol`（m） | M1 | `overlap_route` |
+|---|---|---|
+| 5 | 0.07940284502980417 | 0.13509480851389563 |
+| 10（主要） | 0.14755217634069018 | 0.24674775741096597 |
+| 25 | 0.29376957570963574 | 0.4213855464398009 |
+
+端点误差：起点 0.3644000487209335 m，终点 0.3591385938369312 m。该误差含最多约 0.71 个像素（1 m/像素下约 0.71 m）的格心偏移，因为我们的路线止于格心。
+
+### 如何理解
+
+- 三个容差下的 M1 都低于 0.50，结论是 weak match。所有声明的容差和指标都已列出，包括不好的结果。
+- 这个对照只是合理性检查，不是真值。毅力号的行驶轨迹不是步行者的最优路线。
+- weak match 的原因未解释。可能的因素（未验证）：参考路径与 DTM 网格的重叠有限，参考终点贴近下边界，PLACES 与 MMGIS 在第 3 段不一致，以及代价函数只用坡度而漫游车选路还考虑别的因素。
