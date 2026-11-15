@@ -1,0 +1,96 @@
+{
+  "run_date": "2026-11-15",
+  "inputs": {
+    "grid": "data/processed/grid.json",
+    "slope": "data/processed/slope.npy",
+    "router_config": "routing/config.json",
+    "waypoints": "validation/data/M20_waypoints.json",
+    "traverse": "validation/data/M20_traverse.json"
+  },
+  "projection": {
+    "usgs_label_url": "https://astrogeology.usgs.gov/ckan/dataset/381ba037-d8a9-4cea-86be-374e4951afe3/resource/bd39aeaf-231d-4732-b333-7636bce607ff/download/jez_hirise_soc_006_dtm_molatopography_deltageoid_1m_eqc_latts0_lon0_blend40.lbl",
+    "sphere_radius_m": 3396190.0,
+    "flattening": 0,
+    "latitude_type": "planetocentric",
+    "longitude_direction": "positive_east",
+    "projection": "equirectangular",
+    "lat_ts": 0,
+    "lon_0": 0,
+    "formula": "easting = R * radians(lon); northing = R * radians(lat); lat_ts = 0; lon_0 = 0",
+    "ellipsoid_a_m": 3396190.0,
+    "ellipsoid_b_m": 3376200.0,
+    "ellipsoid_b_used_in_formula": false
+  },
+  "check_a": {
+    "landing_sol": 13,
+    "feature_index": 0,
+    "lon_deg": 77.45089,
+    "lat_deg": 18.44463,
+    "pixel_x": 3277.82,
+    "pixel_y": 3300.3,
+    "grid_width": 4000,
+    "grid_height": 4000,
+    "inside_grid": true,
+    "tied_count": 1
+  },
+  "check_b": {
+    "vertex_count_used": 10,
+    "distances_m": [
+      {
+        "vertex_index": 0,
+        "distance_m": 0.0
+      },
+      {
+        "vertex_index": 1,
+        "distance_m": 0.0
+      },
+      {
+        "vertex_index": 2,
+        "distance_m": 0.0
+      },
+      {
+        "vertex_index": 3,
+        "distance_m": 0.0
+      },
+      {
+        "vertex_index": 4,
+        "distance_m": 0.0
+      },
+      {
+        "vertex_index": 5,
+        "distance_m": 0.0
+      },
+      {
+        "vertex_index": 6,
+        "distance_m": 0.0
+      },
+      {
+        "vertex_index": 7,
+        "distance_m": 0.0
+      },
+      {
+        "vertex_index": 8,
+        "distance_m": 0.0
+      },
+      {
+        "vertex_index": 9,
+        "distance_m": 0.0
+      }
+    ],
+    "max_distance_m": 0.0,
+    "excluded_vertices": []
+  },
+  "check_c": {
+    "slope_limit_deg": 20.0,
+    "router_config": "routing/config.json",
+    "vertices_total": 36661,
+    "inside_grid": 9563,
+    "outside_grid": 27098,
+    "blocked": 38,
+    "blocked_share_pct": 0.4
+  },
+  "warnings": [
+    "WARNING: landing waypoint has sol 13, but spec section 4.4 expects sol 0; validation/data/SNAPSHOT.md records start sol 13",
+    "WARNING: 27098 of 36661 traverse vertices are outside the grid"
+  ]
+}

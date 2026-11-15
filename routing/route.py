@@ -303,12 +303,20 @@ def invalid_slope_mask(s: np.ndarray, nodata_value: float | None = None) -> np.n
     return bad
 
 def build_cost_raster(
-    slope: np.ndarray, p: CostParams, nodata_value: float | None = None
+    slope: np.ndarray,
+    p: CostParams,
+    nodata_value: float | None = None,
+    slope_removed: bool = False,
 ) -> np.ndarray:
     """Per-pixel traversal cost (float64). Missing slopes and slopes above the limit are np.inf.
 
+    With slope_removed=True the slope layer is not a cost input: every cell costs cost_base
+    and nothing is blocked (the slope limit and the missing-data rule both come from slope).
+
     Works in row chunks so a memory-mapped slope array is never converted whole.
     """
+    if slope_removed:
+        return np.full(slope.shape, p.cost_base, dtype=np.float64)
     cost = np.full(slope.shape, np.inf, dtype=np.float64)
     for r0 in range(0, slope.shape[0], _CHUNK_ROWS):
         s = np.asarray(slope[r0 : r0 + _CHUNK_ROWS], dtype=np.float64)
@@ -439,7 +447,7 @@ def get_commit_hash() -> str:
         return "unknown"
 
 
-def _cost_function_text(raw_config: dict, p: CostParams) -> str:
+def _cost_function_text(raw_config: dict, p: CostParams, exclude: str | None = None) -> str:
     def val(key: str) -> object:
         return raw_config[key]["value"]
 
@@ -452,9 +460,75 @@ def _cost_function_text(raw_config: dict, p: CostParams) -> str:
         f"{val('cost_function')}: cost = cost_base + cost_coefficient * "
         f"(slope / slope_limit_deg) ^ cost_exponent; {params}"
     )
+    if exclude is not None:
+        if exclude in _cost_input_ids(raw_config):
+            note = (
+                f"layer '{exclude}' excluded: every cell costs cost_base={val('cost_base')}, "
+                "no cell blocked, slope_limit_deg not applied; "
+            )
+        else:
+            note = f"layer '{exclude}' excluded: not a cost input, no effect on routing; "
+        text = note + text
     if len(text) > _COST_FUNCTION_MAX:
         text = f"{val('cost_function')}: {params}"
+        if exclude is not None:
+            text = f"layer '{exclude}' excluded; " + text
     return text[:_COST_FUNCTION_MAX]
+
+
+def _cost_input_ids(raw_config: dict) -> list[str]:
+    entry = raw_config.get("cost_inputs")
+    value = entry.get("value") if isinstance(entry, dict) else None
+    return list(value) if isinstance(value, list) else []
+
+
+def load_layer_ids(path: Path) -> list[str]:
+    """Return the layer ids (lower-case layer names) listed in layers.json. Raises RoutingError (2)."""
+    path = Path(path)
+
+    def fail(detail: str) -> RoutingError:
+        return RoutingError(f"layers file {path}: {detail}", 2)
+
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        raise fail("file not found") from None
+    except (OSError, UnicodeDecodeError) as exc:
+        raise fail(f"cannot read file ({exc})") from None
+    except ValueError as exc:
+        raise fail(f"malformed JSON ({exc})") from None
+    if not isinstance(raw, list) or not raw:
+        raise fail("top level must be a non-empty JSON array")
+    ids: list[str] = []
+    for item in raw:
+        name = item.get("name") if isinstance(item, dict) else None
+        if not isinstance(name, str) or not name.strip():
+            raise fail(f"every entry needs a non-empty 'name' (rejected value: {item!r})")
+        layer_id = re.sub(r"\s+", "_", name.strip().lower())
+        if layer_id not in ids:
+            ids.append(layer_id)
+    return ids
+
+
+def load_cost_inputs(raw_config: dict, config_path: Path, layer_ids: list[str]) -> list[str]:
+    """Return the cost-input layer ids from config key 'cost_inputs'. Raises RoutingError (2)."""
+    entry = raw_config.get("cost_inputs")
+    value = entry.get("value") if isinstance(entry, dict) else None
+    basis = entry.get("basis") if isinstance(entry, dict) else None
+    problem = None
+    if entry is None:
+        problem = "required key is missing for --exclude"
+    elif not isinstance(basis, str) or not _has_valid_date(basis):
+        problem = "'basis' must be text with a valid YYYY-MM-DD date"
+    elif not isinstance(value, list) or not value or not all(isinstance(v, str) for v in value):
+        problem = "'value' must be a non-empty list of layer ids"
+    else:
+        unknown = [v for v in value if v not in layer_ids]
+        if unknown:
+            problem = f"unknown layer ids {unknown!r}, valid ids are {layer_ids!r}"
+    if problem is not None:
+        raise RoutingError(f"config file {config_path}: key 'cost_inputs': {problem}", 2)
+    return list(value)
 
 
 def build_feature(
@@ -467,14 +541,24 @@ def build_feature(
     start_poi: str | None,
     end_poi: str | None,
     commit: str,
+    data_used: list[str] | None = None,
+    exclude: str | None = None,
+    nodata_value: float | None = None,
 ) -> dict:
     """Build the GeoJSON Feature for a route. Contains no validation metric."""
     coords = [list(pixel_to_coord(r, c, g)) for r, c in path]
     length = 0.0
     for (e0, n0), (e1, n1) in zip(coords, coords[1:]):
         length += math.hypot(e1 - e0, n1 - n0)
-    max_slope = max(float(slope[r, c]) for r, c in path)
+    values = np.array([float(slope[r, c]) for r, c in path], dtype=np.float64)
+    values = values[~invalid_slope_mask(values, nodata_value)]
+    if values.size == 0:
+        raise RoutingError("no route cell has a valid slope value, cannot compute max_slope_deg", 2)
+    max_slope = float(values.max())
     config_min = json.dumps(raw_config, separators=(",", ":"), ensure_ascii=False)
+    generated = f"commit={commit}; config={config_min}"
+    if exclude is not None:
+        generated = f"commit={commit}; exclude={exclude}; config={config_min}"
     return {
         "type": "Feature",
         "geometry": {"type": "LineString", "coordinates": coords},
@@ -485,9 +569,9 @@ def build_feature(
             "length_m": round(length, 2),
             "max_slope_deg": round(max_slope, 2),
             "slope_threshold_deg": raw_config["slope_limit_deg"]["value"],
-            "data_used": ["slope"],
-            "cost_function": _cost_function_text(raw_config, p),
-            "generated_from": f"commit={commit}; config={config_min}",
+            "data_used": ["slope"] if data_used is None else data_used,
+            "cost_function": _cost_function_text(raw_config, p, exclude),
+            "generated_from": generated,
         },
     }
 
@@ -542,6 +626,18 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--slope", type=Path, default=REPO_ROOT / "data" / "processed" / "slope.npy")
     parser.add_argument("--grid", type=Path, default=REPO_ROOT / "data" / "processed" / "grid.json")
     parser.add_argument("--config", type=Path, default=REPO_ROOT / "routing" / "config.json")
+    parser.add_argument(
+        "--exclude",
+        default=None,
+        metavar="LAYER",
+        help="remove one layer (an id from layers.json) from the cost; writes route_<name>_no_<layer>.geojson",
+    )
+    parser.add_argument(
+        "--layers",
+        type=Path,
+        default=REPO_ROOT / "data" / "processed" / "layers" / "layers.json",
+        help="layers.json used to validate --exclude",
+    )
     return parser
 
 
@@ -550,7 +646,24 @@ def main(argv: list[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
     try:
         validate_name(args.name)
+        out_name = args.name
+        data_used: list[str] | None = None
+        slope_removed = False
+        if args.exclude is not None:
+            layer_ids = load_layer_ids(args.layers)
+            if args.exclude not in layer_ids:
+                raise RoutingError(
+                    f"unknown layer {args.exclude!r} for --exclude; valid layers: {', '.join(layer_ids)}", 2
+                )
+            out_name = f"{args.name}_no_{args.exclude}"
+            validate_name(out_name)
         params, raw_config = load_config(args.config)
+        if args.exclude is not None:
+            cost_inputs = load_cost_inputs(raw_config, args.config, layer_ids)
+            data_used = [layer for layer in cost_inputs if layer != args.exclude]
+            slope_removed = "slope" in cost_inputs and "slope" not in data_used
+            if args.exclude not in cost_inputs:
+                print(f"note: layer '{args.exclude}' is not a cost input: no effect on routing", file=sys.stderr)
         grid = load_grid(args.grid)
         slope = load_slope(args.slope, grid)
         if grid.width is None or grid.height is None:
@@ -567,17 +680,18 @@ def main(argv: list[str] | None = None) -> int:
         )
         start = resolve_endpoint("start", start_spec, grid)
         end = resolve_endpoint("end", end_spec, grid)
-        cost = build_cost_raster(slope, params, grid.nodata_value)
+        cost = build_cost_raster(slope, params, grid.nodata_value, slope_removed)
         path, _ = find_path(cost, start, end, params.connectivity)
         feature = build_feature(
-            args.name, path, slope, grid, params, raw_config,
+            out_name, path, slope, grid, params, raw_config,
             args.start_poi, args.end_poi, get_commit_hash(),
+            data_used, args.exclude, grid.nodata_value,
         )
-        target = write_route(feature, args.name)
+        target = write_route(feature, out_name)
     except RoutingError as exc:
         print(f"error: {exc.message}", file=sys.stderr)
         return exc.exit_code
-    print(f"routing/out/route_{args.name}.geojson {os.path.getsize(target)}")
+    print(f"routing/out/route_{out_name}.geojson {os.path.getsize(target)}")
     return 0
 
 
