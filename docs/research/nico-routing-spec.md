@@ -41,7 +41,7 @@ Rules:
 | Source | Official page: https://science.nasa.gov/mission/mars-2020-perseverance/location-map/ . That page does not link to the two JSON files (checked by VN). The JSON addresses used are the ones in `docs/research/vn-perseverance-traverse.md`; they were found on third-party pages and should be described as such in `docs/CITATIONS.md`. |
 | Integrity | SHA-256 (from Austin, 2026-11-15). `M20_waypoints.json`: BD143EE69241229926ABD373E6305B8BBB326D6B5A7B4A8D6935262696F93DC4 . `M20_traverse.json`: 6DDD0ECE913D75B45D105946082F95ED84E68F4718B68D32A4421DC30877E7E6 . Also record these in `docs/CITATIONS.md`. |
 | Counts to re-check | 708 waypoints and 559 traverse segments (above). An earlier snapshot had 703 points and 556 segments, and 5 partial segments and 1 duplicate segment were to be removed. Those numbers belong to the old snapshot. **[TBD-DATA]** Austin lists which features of the new snapshot are "partial" or "duplicate", states the rule used to decide, and writes the rule and the counts into `params.json` before running. Nico approves the rule. |
-| Authoritative citation | PLACES, Release 15, sols 0–1762 [SOURCE: project plan §7.4]. |
+| Authoritative citation | Mars 2020 Rover PLACES Bundle (PDS Geosciences Node), Release 16, posted 2026-08-11, sols 0 to 1897 [SOURCE: `docs/research/vn-perseverance-traverse.md`]. It supersedes the Release 15 (sols 0 to 1762) named earlier. The MMGIS files used here are an undocumented live feed, and the snapshot reaches sol 2022, beyond the PLACES release. |
 | Licence | **[TBD-DATA]** record what NASA states for this data in `docs/CITATIONS.md` (columns: Name, Organization, Version, URL, Accessed, License, Used in). |
 
 Later downloads are saved separately and never replace the snapshot above.
@@ -60,10 +60,11 @@ Later downloads are saved separately and never replace the snapshot above.
 1. Grid cell centres are converted to latitude/longitude by inverting the DTM projection with the sphere radius above.
 2. **All distances are computed in a local azimuthal equidistant projection on the same sphere** (`+proj=aeqd +R=3396190`), centred on the centre of the grid extent, in metres. Never in degrees, and not in raw DTM map metres.
 3. The rover path (latitude/longitude) is converted straight into the same local projection.
-4. The `18.4663°` easting/northing formula is **not** used. It differs from the DTM's own projection (true-scale latitude 0 per the file name), and mixing the two would shift positions. The meaning of `18.4663°` stays an open question and has no effect on validation.
+4. The `18.4663°` easting/northing formula is **not** used. `18.4663°` is the standard parallel of the rover team's PLACES map convention (easting measured at that parallel, northing in true metres; sphere radius 3396190 m) [SOURCE: PLACES SIS v1.0, via `docs/research/vn-perseverance-traverse.md`]. The USGS DTM uses a true-scale latitude of 0. The two differ, so they are never mixed: if PLACES is used, only its planetocentric latitude and longitude columns are read, and they are converted with the sphere of this section.
 5. **Mandatory checks, run before validation:**
    - the landing site of 4.4, converted into the DTM projection, falls inside the grid extent;
    - for two points taken from the corners of the extent, the great-circle (haversine) distance on the sphere and the distance in the local projection differ by less than 1%. Print both numbers. If the difference is 1% or more, stop and tell Nico.
+   - **Sanity values for the landing site** (first row of the PLACES example, SITE,1): planetocentric latitude 18.444627146, longitude 77.450885729 [SOURCE: PLACES SIS v1.0, via VN]. Use them only to check the first row of the real file. The same example lists a planetodetic latitude of 18.346169209, which is lower than the planetocentric one; for Mars at this latitude the planetodetic value should be the larger, so do not use that number. Read the real file.
    - **Latitude convention of the rover file.** **[TBD-DATA]** Find in NASA/JPL documentation which datum and latitude type the rover JSON uses. Do not assume. Convert with the sphere above. Using the ellipsoid with b = 3376200 instead would shift points north-south by about 0.2° of latitude, roughly 12 km at 18.5°N (calculated from the two radii, not from a source). That is more than half the height of the grid. Diagnostic: the share of reference points that fall in blocked cells (4.6, item 7). A large share is a warning of a conversion error; report it and tell Nico.
 6. Distance = planimetric Euclidean distance in the local projection. Point-to-line distance, if used, uses the closest point on the segment.
 7. Route length (shown on the web page and used in validation) is computed from route vertex coordinates in the local projection, with one shared function. It is not computed by counting cells.
@@ -92,7 +93,7 @@ Definitions:
 - Any part of the traverse that is inside the extent but after re-entry is **not compared**. The report states its number of points and length. [DESIGN]
 - The traverse is clipped by this rule only. No hand-drawn cuts. The terrain is not cropped here, because `grid.json` is already the cropped terrain made by the data pipeline.
 
-If the validation reference lies mostly at sols above 1762, say so in the report, because PLACES Release 15 stops at sol 1762 (4.2). [DESIGN]
+If the validation reference lies at sols above 1897, say so in the report, because PLACES Release 16 stops at sol 1897 (4.2). [DESIGN]
 
 ### 4.5 Metrics, resampling, tolerance, and thresholds
 **Resampling.** [DESIGN]
