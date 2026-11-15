@@ -130,7 +130,7 @@ else:
 # Extent in degrees (same method as step3), from the window actually read
 # ---------------------------------------------------------------------------
 GEO_CRS_PRIMARY = "EPSG:49900"
-GEO_CRS_FALLBACK = "+proj=longlat +a=3396190 +b=3376200 +no_defs"
+GEO_CRS_FALLBACK = "+proj=longlat +R=3396190 +no_defs"
 
 w_edge = win_transform.c
 n_edge = win_transform.f

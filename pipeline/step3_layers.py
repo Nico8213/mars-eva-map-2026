@@ -129,7 +129,7 @@ Image.fromarray(hillshade_uint8, mode="L").save(hillshade_png_path)
 # 3c — Extent reprojection and layers.json
 # ---------------------------------------------------------------------------
 GEO_CRS_PRIMARY  = "EPSG:49900"
-GEO_CRS_FALLBACK = "+proj=longlat +a=3396190 +b=3376200 +no_defs"
+GEO_CRS_FALLBACK = "+proj=longlat +R=3396190 +no_defs"
 
 def _reproject_corners(xs, ys, src_crs, dst_crs: str):
     """Reproject a list of (x, y) pairs and return (lons, lats)."""
