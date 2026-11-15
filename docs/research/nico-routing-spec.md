@@ -41,8 +41,8 @@ Rules:
 | Cross-check reference | `M20_traverse.json` (line segments) and `M20_waypoints.json` (points), the MMGIS files. Downloaded by Austin on 2026-11-15, 08:06 to 08:08 (UTC+8), from the two JSON links listed in `docs/research/vn-perseverance-traverse.md`. Files are in `validation/data/` (commit 0dfc5b6 on the `b-routing` branch) with a `SNAPSHOT.md`. Traverse: 36,661 points, 559 segments, sol 14 to 2022. Waypoints: 708 points, sol 13 to 2022. Neither file has a sol 0. This snapshot replaces an earlier 2026-10-11 snapshot, which is not available as a file. Only this snapshot is used. [SOURCE: Austin's report, 2026-11-15] |
 | Source of the MMGIS files | Official page: https://science.nasa.gov/mission/mars-2020-perseverance/location-map/ . That page does not link to the two JSON files (checked by VN). The JSON addresses used are the ones in `docs/research/vn-perseverance-traverse.md`; they were found on third-party pages and are described as such in `docs/CITATIONS.md`. |
 | Integrity of the MMGIS files | SHA-256 (from Austin, 2026-11-15). `M20_waypoints.json`: BD143EE69241229926ABD373E6305B8BBB326D6B5A7B4A8D6935262696F93DC4 . `M20_traverse.json`: 6DDD0ECE913D75B45D105946082F95ED84E68F4718B68D32A4421DC30877E7E6 . Also recorded in `docs/CITATIONS.md`. |
-| Why PLACES is primary | PLACES is the documented archive release (it supersedes Release 15, sols 0 to 1762, named earlier) [SOURCE: `docs/research/vn-perseverance-traverse.md`]. The MMGIS files are an undocumented live feed, and the snapshot reaches sol 2022, beyond the PLACES release (sol 1897). The two sources agree on the first position: the first traverse vertex (segment 0, vertex 0, sol 14) is latitude 18.44462715, longitude 77.45088573, the same as the first SITE row of PLACES to the digits printed. [SOURCE: Austin's report, 2026-11-15] The latitude type of the PLACES file is documented, while that of the MMGIS files is not stated in any official document (4.3) [SOURCE: VN]. |
-| Partial and duplicate segments (rule fixed by Nico, 15 Nov 2026) [DESIGN] | Applies to the MMGIS cross-check only. **Partial segment:** a traverse segment with fewer than 2 distinct vertices, or a length of 0. In this snapshot: segments 206, 207, 369, 402, 490 (5 segments). **Duplicate segment:** a segment whose coordinates are identical to the preceding segment; the earlier one is kept. In this snapshot: 206 and 207 are identical, so 207 is the duplicate and 206 is kept by this rule. Segment 206 is also a partial segment, so the two rules overlap. The segments removed are the **union**, counted once each: 206, 207, 369, 402, 490, which is 5 of 559, leaving 554. The program prints the list and the counts. Recorded but **not** used to filter: segments 180 and 181 (same fromRMC and toRMC) and the RMC chain breaks at 83 to 84, 84 to 85, 89 to 90, 95 to 96, 180 to 181 and 534 to 535. Austin states whether the indices above are 0-based or 1-based. The earlier snapshot's "5 partial and 1 duplicate" were counted on a different snapshot (703 points and 556 segments), and the basis of the "703" is not verified (708 is the waypoint count, not the traverse point count); those numbers are not used. [SOURCE: Austin's report, 2026-11-15, for the data; the rule is our own choice] |
+| Why PLACES is primary | PLACES is the documented archive release (it supersedes Release 15, sols 0 to 1762, named earlier) [SOURCE: `docs/research/vn-perseverance-traverse.md`]. The MMGIS files are an undocumented live feed, and the snapshot reaches sol 2022, beyond the PLACES release (sol 1897). The two sources agree on the first position: the first traverse vertex (segment 0, vertex 0, sol 14) is latitude 18.44462715, longitude 77.45088573, the same as the first SITE row of PLACES to the digits printed; the distance between the two points is 0.00024 m. [SOURCE: Austin's report, 2026-11-15] The latitude type of the PLACES file is documented, while that of the MMGIS files is not stated in any official document (4.3) [SOURCE: VN]. |
+| Partial and duplicate segments (rule fixed by Nico, 15 Nov 2026) [DESIGN] | Applies to the MMGIS cross-check only. **Partial segment:** a traverse segment with fewer than 2 distinct vertices, or a length of 0. The program lists the segments that match. **Duplicate segment:** a segment whose coordinates are identical to the preceding segment; the earlier one is kept. In this snapshot the program finds exactly one duplicate, segment 207 (identical to 206), and segment 206 is a partial segment, so the two rules overlap. The segments removed are the **union** of the two rules, counted once each: 206, 207, 369, 402, 490, which is 5 of 559, leaving 554 (indices are 0-based). The program prints which segments match which rule and the counts. [SOURCE: Austin's report, 2026-11-15] Recorded but **not** used to filter: segments 180 and 181 (same fromRMC and toRMC) and the RMC chain breaks at 83 to 84, 84 to 85, 89 to 90, 95 to 96, 180 to 181 and 534 to 535. The earlier snapshot's "5 partial and 1 duplicate" were counted on a different snapshot (703 points and 556 segments), and the basis of the "703" is not verified (708 is the waypoint count, not the traverse point count); those numbers are not used. [SOURCE: Austin's report, 2026-11-15, for the data; the rule is our own choice] |
 | Licence | PLACES: no licence text on the page; the PDS general statement is public domain; the interface specification carries a Caltech copyright notice with government sponsorship acknowledged. MMGIS files: no licence stated; NASA media usage guidelines apply. Recorded in `docs/CITATIONS.md` (columns: Name, Organization, Version, URL, Accessed, License, Used in). |
 
 Later downloads are saved separately and never replace the snapshot above.
@@ -53,7 +53,7 @@ Later downloads are saved separately and never replace the snapshot above.
 - Projection: equirectangular, centre longitude 0, centre latitude 0 (the file name says `latTs0`), planetocentric latitude, longitude positive east.
 - Planet: a sphere, equatorial radius = polar radius = 3396190 m.
 - Pixel size: 1 m in map units. Extent of the full file: latitude 18.3068 to 18.6693, longitude 77.2229 to 77.5840.
-- **[TBD-DATA]** Austin's script reads the CRS and radius from the cropped grid file actually used (with `rasterio`/`pyproj`) and confirms they equal the values above. If they differ, stop and tell Nico.
+- Austin's script reads the CRS and radius from the cropped grid file actually used and confirms they equal the values above. Austin reports (2026-11-15) that they do: sphere with R = 3396190 m, equirectangular, standard parallel 0 and central meridian 0. If they ever differ, stop and tell Nico. [SOURCE: Austin's report; the check is recorded in the `params.json` draft, commit 3d76680]
 
 **The problem with this projection.** With the true-scale latitude at 0, one map metre east-west is shorter on the ground than one map metre north-south, by a factor of cos(latitude), which is about 0.95 at Jezero. Distances measured in raw map metres would overstate east-west distances by about 5%. [DESIGN: decision below]
 
@@ -66,7 +66,7 @@ Later downloads are saved separately and never replace the snapshot above.
    - the landing site of 4.4, converted into the DTM projection, falls inside the grid extent;
    - for two points taken from the corners of the extent, the great-circle (haversine) distance on the sphere and the distance in the local projection differ by less than 1%. Print both numbers. If the difference is 1% or more, stop and tell Nico.
    - **Sanity values for the landing site** (first row with `frame` = SITE in the real `best_interp.csv`): planetocentric latitude 18.444627146, longitude 77.450885729. Austin confirmed on 2026-11-15 that the real file's first SITE row has exactly these values, which are also the ones in the PLACES SIS v1.0 example [SOURCE: Austin's report; SIS via VN]. The SIS example lists a planetodetic latitude of 18.346169209, which is lower than the planetocentric one; for Mars at this latitude the planetodetic value should be the larger, so do not use that number. The planetodetic column is not read.
-   - **Latitude convention of the rover files.** [SOURCE: `docs/research/vn-perseverance-latitude.md`, checked by VN on 2026-11-15] PLACES `planetocentric_latitude` is planetocentric latitude, computed as the northing divided by the radius 3396190 m, so it is equivalent to a sphere of radius 3396190 m (Rover PLACES SIS v1.0, sections 5.1.3 and 5.2.3; the text of 5.2.3 has a typo, 3393190, in one place). The height datum is the MOLA areoid (SIS 3.9.3). The latitude type and datum of the MMGIS JSON files are **not stated in any official document found** (the NASA MMGIS documentation, the MMGIS GitHub page and NASA's M20 map configuration were checked). The map configuration lists a planetary radius of 3396190 m on both axes, but that is a map setting and does not say what the JSON values are. So the MMGIS latitude is described only as "latitude type not stated in official documentation" and is never labelled planetocentric or planetodetic. The first MMGIS vertex agrees with the PLACES planetocentric value of the first SITE row to the digits printed (4.2); this is an observation, not documentation. Convert with the sphere above. Using the ellipsoid with b = 3376200 instead would shift points north-south by about 0.2° of latitude, roughly 12 km at 18.5°N (calculated from the two radii, not from a source). That is more than half the height of the grid. Diagnostic: the share of reference points that fall in blocked cells (4.6, item 7). A large share is a warning of a conversion error; report it and tell Nico.
+   - **Latitude convention of the rover files.** [SOURCE: `docs/research/vn-perseverance-latitude.md`, checked by VN on 2026-11-15] PLACES `planetocentric_latitude` is planetocentric latitude, computed as the northing divided by the radius 3396190 m, so it is equivalent to a sphere of radius 3396190 m (Rover PLACES SIS v1.0, sections 5.1.3 and 5.2.3; the text of 5.2.3 has a typo, 3393190, in one place). The height datum is the MOLA areoid (SIS 3.9.3). The latitude type and datum of the MMGIS JSON files are **not stated in any official document found** (the NASA MMGIS documentation, the MMGIS GitHub page and NASA's M20 map configuration were checked). The map configuration lists a planetary radius of 3396190 m on both axes, but that is a map setting and does not say what the JSON values are. So in every document the MMGIS latitude is described only as "latitude type not stated in official documentation" and is never labelled planetocentric or planetodetic. For the computation only, the cross-check treats the MMGIS latitude as planetocentric; this is an assumption and the report says so. It affects only the cross-check, because the primary reference is PLACES. [DESIGN] The first MMGIS vertex agrees with the PLACES planetocentric value of the first SITE row to the digits printed (4.2); this is an observation, not documentation. Convert with the sphere above. Using the ellipsoid with b = 3376200 instead would shift points north-south by about 0.2° of latitude, roughly 12 km at 18.5°N (calculated from the two radii, not from a source). That is more than half the height of the grid. Diagnostic: the share of reference points that fall in blocked cells (4.6, item 7). A large share is a warning of a conversion error; report it and tell Nico.
    - **Transform check already run (information only).** Austin's check C (commit de8e1d2, 2026-11-15) converted the MMGIS traverse vertices into the grid. 9,563 vertices fall inside the grid, about 74% fall outside, and 38 of the 9,563 (0.4%) are in blocked cells. This checks the conversion. It is not a comparison of our route with the reference, and it must not be used to tune the slope limit or any other parameter. [SOURCE: Austin's report, 2026-11-15]
 6. Distance = planimetric Euclidean distance in the local projection. Point-to-line distance, if used, uses the closest point on the segment.
 7. Route length (shown on the web page and used in validation) is computed from route vertex coordinates in the local projection, with one shared function. It is not computed by counting cells.
@@ -105,7 +105,7 @@ The primary reference stops at sol 1897 and the MMGIS cross-check reaches sol 20
 **Resampling.** [DESIGN]
 1. Terrain: not resampled. The validation uses `slope.npy` and `grid.json` at their stored resolution.
 2. If the grid is ever coarsened, compute slope first at native resolution, then coarsen the **slope** (not the elevation) with the **maximum** per block. A coarse cell is then blocked if any fine cell in it is blocked, which is the cautious choice. Continuous layers use bilinear interpolation; masks and categories use nearest neighbour.
-3. Lines: our route and the validation reference are both converted to equally spaced points along their length, spacing = one grid pixel (from `grid.json`), by linear interpolation in the local metre coordinates of 4.3. Never interpolate in degrees.
+3. Lines: our route and the validation reference are both converted to equally spaced points along their length, spacing = one grid pixel (from `grid.json`), by linear interpolation in the local metre coordinates of 4.3. Never interpolate in degrees. The first and last vertex of each line are always kept exactly; the last step may be shorter than one pixel. The vertices of our route are grid **cell centres** (the path passes through cell centres): cell centre = outer corner of the top-left pixel + (index + 0.5) × pixel size. **[TBD-DATA]** Austin confirms from `grid.json` that `top_left_x_m` and `top_left_y_m` are the outer corner of the top-left pixel (GeoTIFF convention) and not a pixel centre; if they are a centre, the 0.5 is dropped. The reference line is built from its own positions and is not snapped to cell centres.
 4. The method and spacing are written into `report.json`.
 
 **Metrics.**
@@ -139,7 +139,7 @@ The primary reference stops at sol 1897 and the MMGIS cross-check reaches sol 20
 | at least 0.50 and below 0.80 | partial match |
 | below 0.50 | weak match |
 
-Also report `end_point_error_m`: the distance between our route's first/last point and the reference's first/last point (information only).
+Also report `end_point_error_m`: the distance between our route's first/last point and the reference's first/last point (information only). Because our route starts and ends at cell centres, this includes an offset of up to about 0.71 pixel (half the cell diagonal).
 
 ### 4.6 Endpoints and "unreachable" for validation
 This section applies to the **validation** route only. POI routes follow section 3 (no fallback endpoint).
@@ -168,7 +168,7 @@ Committed in `validation/params.json` before the first validation run and not ch
 - cost formula: `1 + (slope / limit)^2`
 - connectivity: `fully_connected=True`, `geometric=True`
 - pixel size and grid extent: read from `grid.json`
-- resampling spacing: one grid pixel
+- resampling spacing: one grid pixel; route vertices at cell centres; first and last vertex kept
 - blocked cells: `np.inf`; NaN or nodata is blocked
 - tolerances: `d_tol` = 10 m, sensitivity 5 m and 25 m
 - verdict thresholds on M1: 0.80 and 0.50
@@ -188,9 +188,9 @@ Committed in `validation/params.json` before the first validation run and not ch
 
 ## 6. Open items
 
-- **Item 10 from Austin's list:** **[TBD, ask Austin]** (his message said 10 items but numbered only 9). Delete this line once answered.
-- **[TBD-DATA]** values still open before `validation/params.json` is locked: 4.3 (CRS and radius read from the cropped grid file), 4.4 (the rover-row filter, the `sol` and `dist_total` field names, and the table of runs inside the extent). Also: whether the segment indices in 4.2 are 0-based or 1-based.
-- Already settled (15 Nov 2026): primary reference and its hash (4.2), landing site rule (4.4), partial and duplicate rule (4.2), slope not recomputed (4.3), latitude convention of the PLACES file and the undocumented MMGIS latitude type (4.3).
+- Austin's list has 9 items. His first message said 10 but numbered only 9; on 15 Nov 2026 Nico and Austin agreed that there is no item 10.
+- **[TBD-DATA]** values still open before `validation/params.json` is locked: 4.4 (the rover-row filter, the `sol` and `dist_total` field names, and the table of runs inside the extent) and 4.5 (the cell-centre convention of `grid.json`).
+- Already settled (15 Nov 2026): primary reference and its hash (4.2), landing site rule (4.4), partial and duplicate rule (4.2), slope not recomputed (4.3), latitude convention of the PLACES file and the undocumented MMGIS latitude type (4.3), the CRS of the grid (4.3), 0-based segment indices (4.2), and the polyline and resampling rule (4.5).
 
 Where Austin's items are answered:
 
@@ -237,22 +237,24 @@ Austin may rename the keys. Every line must exist in some form. `null` values ar
     "sha256_grid_json": null,
     "partial_rule": "fewer than 2 distinct vertices, or length 0",
     "duplicate_rule": "coordinates identical to the preceding segment; keep the earlier",
-    "partial_segments": [206, 207, 369, 402, 490],
+    "partial_segments": null,
     "duplicate_segments": [207],
+    "removed_segments_union": [206, 207, 369, 402, 490],
     "removed_segments_union_count": 5,
-    "segment_index_base": null,
+    "segment_index_base": 0,
     "recorded_not_filtered": { "same_fromRMC_toRMC": [180, 181], "rmc_chain_breaks": ["83-84", "84-85", "89-90", "95-96", "180-181", "534-535"] }
   },
   "clip": { "extent": "grid.json bounds", "reference_run": "first uninterrupted run inside the extent, starting at the landing site", "landing_site": "first row with frame == SITE in best_interp.csv", "landing_site_sol": null },
   "crs": {
     "terrain_file": "JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40.tif",
     "terrain_version": "006",
-    "dtm_projection": "equirectangular, lat_ts 0, lon_0 0, sphere (confirm on the cropped file)",
+    "dtm_projection": "equirectangular, lat_ts 0, lon_0 0, sphere (confirmed by Austin, 2026-11-15)",
     "radius_m": 3396190,
+    "mmgis_latitude_treatment": "assumed planetocentric for the cross-check only; documents say: latitude type not stated in official documentation",
     "distance_projection": "aeqd, same sphere, centred on grid extent centre",
     "haversine_check_max_relative_difference": 0.01
   },
-  "resampling": { "terrain": "none", "coarsen_slope_by": "max", "line_spacing": "one grid pixel" },
+  "resampling": { "terrain": "none", "coarsen_slope_by": "max", "line_spacing": "one grid pixel", "route_vertices": "cell_centres", "keep_first_last_vertex": true },
   "cost": { "formula": "1 + (slope / limit)^2", "slope_limit_deg": 20, "blocked_value": "inf", "nan_is_blocked": true, "fully_connected": true, "geometric": true },
   "tolerance_m": { "primary": 10, "sensitivity": [5, 25] },
   "snap": { "r_snap_cells": 3 },
