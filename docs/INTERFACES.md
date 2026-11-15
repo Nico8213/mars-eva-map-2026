@@ -1,74 +1,80 @@
-# File formats
-| File | Written by | Read by | Content |
-|---|---|---|---|
-| data/processed/grid.json | A | B, C | Source product name and version, pixel size (m), width, height, top-left coordinate, coordinate notes |
-| data/processed/slope.npy | A | B | 2D array, degrees, same size as grid.json |
-| data/processed/layers/*.png and layers.json | A | C | One semi-transparent PNG per layer; layers.json lists name, file, extent and data card id |
-| data/processed/poi.geojson | A | B, C | Points of interest: id, name, type, position, source |
-| data/processed/data_cards.json | A | C | One data card per layer: source, version, date, resolution, license, known issues |
-| routing/out/route_<name>.geojson | B | C | Route; properties: length, max slope, data used |
-| validation/out/report.json | B | C, D | Validation metrics (computed by code), parameters, comparison segments |
+# Interface specification: file formats
 
-Source: PRD v0.3 (`internal/PRD_v0.3.html`), §8.1 (pipeline flow), §8.2 (coordinates), §7.6 (version rule), and §12.6 (open coordinate questions). Items marked TBD are not decided in the PRD. Example values are illustrative unless a PRD section gives the value.
+This document describes the files that the data pipeline, the routing code, the validation code and the web page exchange. Each file has one writer and one or more readers.
+
+Values written in angle brackets, such as `<integer>`, are placeholders that show the type. They are not real data. The real values are in the files themselves.
+
+| File | Written by | Read by | Content |
+| --- | --- | --- | --- |
+| `data/processed/grid.json` | Pipeline | Routing, Web | Source product name and version, pixel size (m), width, height, top-left coordinate, coordinate system, known issues |
+| `data/processed/slope.npy` | Pipeline | Routing | 2D array of slope in degrees, same size as the grid |
+| `data/processed/layers/*.png` and `layers.json` | Pipeline | Web | One semi-transparent PNG per layer; `layers.json` lists name, file, extent and data card id |
+| `data/processed/poi.geojson` | Pipeline | Routing, Web | Points of interest: id, name, type, position, source, evidence |
+| `data/processed/data_cards.json` | Pipeline | Web | One data card per layer: source, version, date, resolution, license, known issues |
+| `routing/out/route_<name>.geojson` | Routing | Web | Route; properties include length, maximum slope and data used |
+| `validation/out/report.json` | Validation | Web | Validation metrics (computed by code), locked parameters, compared segments |
 
 ## Common conventions
 
 - All files are UTF-8. JSON files use 2-space indentation.
 - Units: lengths in metres, angles in degrees, time in ISO 8601 (UTC).
-- Coordinates are projected easting/northing in metres. The CRS name is TBD (PRD §12.6). Do not mix the HiRISE DTM projection with the traverse projection until PRD §8.2 is resolved.
-- Every number carries a source and version tag (PRD §7.6). Validation uses only the 2026-10-11 snapshot (sol 1980). New downloads are stored separately.
-- Pipeline order (PRD §8.1): freeze snapshot → unify coordinates → slope raster → extract POI → least-cost path on grid → export GeoJSON → cockpit display. Each file below is produced at one of these steps.
-- The top-left corner of pixel (row, col) is at easting = top_left.easting_m + col * pixel_size_m and northing = top_left.northing_m - row * pixel_size_m. Northing increases upward; image rows increase downward.
+- Grid coordinates (`grid.json`, `slope.npy` and the layer extents) are projected easting/northing in metres. The grid coordinate system is the one of the HiRISE DTM: equirectangular, true-scale latitude 0, central meridian 0, Mars sphere with radius R = 3396190 m. The 18.4663° standard parallel used by the PLACES map convention is not used. The one exception is `poi.geojson`, which stores longitude and latitude in degrees (planetocentric latitude, Mars sphere R = 3396190 m).
+- Every number carries a source and a version. All sources are listed in `docs/CITATIONS.md`.
+- The top-left corner of pixel (row, col) is at easting = top-left easting + col × pixel size and northing = top-left northing − row × pixel size. Northing increases upward; image rows increase downward. The pixel centre is at the corner position plus half a pixel.
+- Pipeline order: download and crop the DTM → unify coordinates → slope raster → points of interest → least-cost path on the grid → export GeoJSON → web display. Each file below is produced at one of these steps.
+- Validation reference: Mars 2020 Rover PLACES `best_interp.csv` (Release 16), frozen as a snapshot before the validation run. The NASA/JPL MMGIS traverse and waypoint files are used only as a cross-check. Both are listed in `docs/CITATIONS.md`.
+- Validation distances are computed in a local azimuthal equidistant projection centred on the grid centre (`+proj=aeqd +R=3396190`).
+- Latitude type: PLACES latitudes are planetocentric. For the MMGIS files the official documentation does not state the latitude type, and this project does not state one either.
 
 ## data/processed/grid.json
 
-Written by A, read by B and C.
+Written by the pipeline, read by routing and web.
 
 | Field | Type | Required | Description | Example |
-|---|---|---|---|---|
-| `source_product` | string | yes | Name of the source product | `"HiRISE DTM (Jezero crop)"` |
+| --- | --- | --- | --- | --- |
+| `source_product` | string | yes | Name of the source product | `"Mars 2020 TRN HiRISE DTM mosaic (Jezero crop)"` |
 | `source_version` | string | yes | Product version | `"006"` |
-| `source_url` | string | yes | Download or landing page for the source | TBD |
+| `source_url` | string | yes | DOI or landing page of the source | `"https://doi.org/10.5066/P9REJ9JN"` |
 | `pixel_size_m` | number | yes | Pixel size in metres | `1.0` |
-| `width` | integer | yes | Number of columns; set after the crop area is fixed | TBD |
-| `height` | integer | yes | Number of rows; set after the crop area is fixed | TBD |
-| `top_left` | object `{easting_m: number, northing_m: number}` | yes | Coordinates of the top-left pixel corner | TBD |
-| `crs` | string | yes | Coordinate reference system name | TBD (PRD §12.6) |
-| `coordinate_notes` | string | yes | Projection notes, including the 18.4663° standard parallel question | `"DTM label: equirectangular. Standard parallel 18.4663° meaning TBD (PRD §8.2)."` |
-| `elevation_reference` | string | yes | Vertical datum, for example the geoid reference | TBD (PRD §12.6) |
-| `nodata_value` | number | yes | Value used for missing pixels | TBD |
+| `width` | integer | yes | Number of columns | `<integer>` |
+| `height` | integer | yes | Number of rows | `<integer>` |
+| `top_left` | object `{easting_m: number, northing_m: number}` | yes | Coordinates of the outer corner of the top-left pixel | `<numbers>` |
+| `crs` | string | yes | Coordinate system name | see example below |
+| `coordinate_notes` | string | yes | Projection notes | see example below |
+| `elevation_reference` | string | yes | Vertical datum as stated by the source product | `<string>` |
+| `nodata_value` | number | yes | Value used for missing pixels | `<number>` |
 
-Example:
+Example (placeholders are strings here only so that the example stays valid JSON; the real file holds numbers):
 
 ```json
 {
-  "source_product": "HiRISE DTM (Jezero crop)",
+  "source_product": "Mars 2020 TRN HiRISE DTM mosaic (Jezero crop)",
   "source_version": "006",
-  "source_url": "TBD",
+  "source_url": "https://doi.org/10.5066/P9REJ9JN",
   "pixel_size_m": 1.0,
-  "width": "TBD",
-  "height": "TBD",
-  "top_left": { "easting_m": "TBD", "northing_m": "TBD" },
-  "crs": "TBD",
-  "coordinate_notes": "DTM label: equirectangular. Standard parallel 18.4663° meaning TBD (PRD §8.2).",
-  "elevation_reference": "TBD",
-  "nodata_value": "TBD"
+  "width": "<integer>",
+  "height": "<integer>",
+  "top_left": { "easting_m": "<number>", "northing_m": "<number>" },
+  "crs": "Equirectangular, true-scale latitude 0, central meridian 0, Mars sphere R = 3396190 m",
+  "coordinate_notes": "The 18.4663 degree standard parallel of the PLACES map convention is not used.",
+  "elevation_reference": "<string>",
+  "nodata_value": "<number>"
 }
 ```
 
-Note: `width`, `height`, and the coordinates are shown as strings only because they are not yet known. The real file must hold numbers.
-
 ## data/processed/slope.npy
 
-Written by A, read by B. A NumPy array saved with `numpy.save`.
+Written by the pipeline, read by routing. A NumPy array saved with `numpy.save`.
 
 | Property | Value |
-|---|---|
+| --- | --- |
 | Shape | `(height, width)`, same as `grid.json` |
-| Data type | float32 (proposed) |
+| Data type | float32 |
 | Unit | degrees |
-| Missing values | NaN (proposed; confirm against `nodata_value`) |
-| Derived from | The DTM elevation grid in `grid.json` |
+| Missing values | NaN |
+| Derived from | The DTM elevation grid described in `grid.json` |
+
+Known issue: the slope script uses 1 m spacing in both the north-south and the east-west direction. The real east-west ground spacing is about 0.95 m, so the east-west part of the slope is understated by about 5%. The raster was not recomputed.
 
 Example load:
 
@@ -79,48 +85,53 @@ slope = np.load("data/processed/slope.npy")  # shape (height, width), degrees
 
 ## data/processed/layers/*.png and layers.json
 
-Written by A, read by C.
+Written by the pipeline, read by web.
 
-Each PNG is one semi-transparent RGBA image for one layer. The PRD requires at least three layers: terrain, optical, and spectral (F1). Obstacle (F5) and environment (F9) layers are TBD.
+Each PNG is one semi-transparent RGBA image for one layer. The Optical layer comes from the CTX mosaic (6 m/px) and is used as visual background only; it does not affect route cost. The web page shows three layers: Slope, Hillshade and Optical (CTX 6 m). There is no spectral layer: spectral (CRISM) information is a reference only and is not drawn on the map.
 
 `layers.json` is an array with one object per PNG:
 
 | Field | Type | Required | Description | Example |
-|---|---|---|---|---|
-| `name` | string | yes | Layer name shown in the UI | `"Terrain (HiRISE DTM)"` |
-| `file` | string | yes | PNG path relative to `data/processed/layers/` | `"terrain.png"` |
-| `extent` | object `{min_easting_m, min_northing_m, max_easting_m, max_northing_m}` | yes | Bounding box in the `grid.json` CRS | TBD |
-| `data_card_id` | string | yes | Matches an `id` in `data_cards.json` | `"card-terrain-hirise"` |
+| --- | --- | --- | --- | --- |
+| `name` | string | yes | Layer name shown on the web page | `"Optical (CTX 6 m)"` |
+| `file` | string | yes | PNG path relative to `data/processed/layers/` | `"<file name>.png"` |
+| `extent` | object `{min_easting_m, min_northing_m, max_easting_m, max_northing_m}` | yes | Bounding box in the `grid.json` coordinate system | `<numbers>` |
+| `data_card_id` | string | yes | Matches an `id` in `data_cards.json` | `"<card id>"` |
 
 Example:
 
 ```json
 [
   {
-    "name": "Terrain (HiRISE DTM)",
-    "file": "terrain.png",
-    "extent": { "min_easting_m": "TBD", "min_northing_m": "TBD", "max_easting_m": "TBD", "max_northing_m": "TBD" },
-    "data_card_id": "card-terrain-hirise"
+    "name": "Optical (CTX 6 m)",
+    "file": "<file name>.png",
+    "extent": {
+      "min_easting_m": "<number>",
+      "min_northing_m": "<number>",
+      "max_easting_m": "<number>",
+      "max_northing_m": "<number>"
+    },
+    "data_card_id": "<card id>"
   }
 ]
 ```
 
 ## data/processed/poi.geojson
 
-Written by A, read by B and C. A GeoJSON `FeatureCollection` of science points of interest (POI). Sources are CRISM and optical imagery (F2, PRD §3.2).
+Written by the pipeline, read by routing and web. A GeoJSON `FeatureCollection` of points of interest (POI). The POIs were selected by eye from `hillshade.png`. They are not CRISM detections.
 
 Each feature:
 
 | Property | Type | Required | Description | Example |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | `geometry.type` | string | yes | `"Point"` | `"Point"` |
-| `geometry.coordinates` | [number, number] | yes | `[easting_m, northing_m]` (see note) | TBD |
-| `id` | string | yes | Unique POI id | `"poi-001"` |
-| `name` | string | yes | Display name | TBD |
-| `type` | string | yes | POI category | `"hydrous mineral detection"` |
-| `source` | string | yes | `"CRISM"` or `"optical"` | `"CRISM"` |
-| `evidence` | string | yes | Basis shown when the user clicks the point (F2) | TBD |
-| `selection_rule` | string | no | Rule that selected this POI; the rule is not yet defined (PRD §3.2, §12.5) | TBD |
+| `geometry.coordinates` | [number, number] | yes | `[longitude_deg, latitude_deg]` in degrees (planetocentric latitude, Mars sphere R = 3396190 m). These are not grid metres | `<numbers>` |
+| `id` | string | yes | Unique POI id | `"<id>"` |
+| `name` | string | yes | Display name | `"Cliff A"` |
+| `type` | string | yes | POI category | `"<category>"` |
+| `source` | string | yes | Image the point was selected from | `"hillshade"` |
+| `evidence` | string | yes | Basis shown when the user clicks the point | `"Selected by eye from hillshade.png; not a CRISM detection"` |
+| `selection_rule` | string | no | Rule that selected this POI | `"Selected by eye; no automatic rule"` |
 
 Example:
 
@@ -130,140 +141,145 @@ Example:
   "features": [
     {
       "type": "Feature",
-      "geometry": { "type": "Point", "coordinates": ["TBD", "TBD"] },
+      "geometry": { "type": "Point", "coordinates": ["<number>", "<number>"] },
       "properties": {
-        "id": "poi-001",
-        "name": "TBD",
-        "type": "hydrous mineral detection",
-        "source": "CRISM",
-        "evidence": "TBD",
-        "selection_rule": "TBD"
+        "id": "<id>",
+        "name": "Cliff A",
+        "type": "<category>",
+        "source": "hillshade",
+        "evidence": "Selected by eye from hillshade.png; not a CRISM detection",
+        "selection_rule": "Selected by eye; no automatic rule"
       }
     }
   ]
 }
 ```
 
-Note: RFC 7946 assumes longitude/latitude in WGS84. Projected Mars coordinates break that assumption. Decide whether to keep projected coordinates with a `crs` member, or convert (PRD §12.6).
+Note: the GeoJSON standard (RFC 7946) assumes Earth longitude/latitude (WGS84). The coordinates here are Mars longitude/latitude on a sphere of radius 3396190 m, so do not draw them on an Earth map. Routing and the web page convert them to grid coordinates themselves.
 
 ## data/processed/data_cards.json
 
-Written by A, read by C. An array with one data card per layer. Fields follow F8 (data provenance panel) and the 14.3 decision that data cards are P0.
+Written by the pipeline, read by web. An array with one data card per layer.
 
 | Field | Type | Required | Description | Example |
-|---|---|---|---|---|
-| `id` | string | yes | Card id, referenced by `layers.json` | `"card-terrain-hirise"` |
-| `layer_name` | string | yes | Layer this card describes | `"Terrain (HiRISE DTM)"` |
+| --- | --- | --- | --- | --- |
+| `id` | string | yes | Card id, referenced by `layers.json` | `"<card id>"` |
+| `layer_name` | string | yes | Layer this card describes | `"Optical (CTX 6 m)"` |
 | `mission` | string | yes | Source mission | `"MRO"` |
-| `instrument` | string | yes | Source instrument | `"HiRISE"` |
-| `product` | string | yes | Product name and version | `"DTM 006"` |
-| `acquisition_date` | string | yes | Date or range of source data (ISO 8601) | TBD |
-| `resolution` | string | yes | Resolution with unit | `"1 m/px"` |
-| `license` | string | yes | License or usage terms | TBD (PRD §7.3, §12.7) |
-| `known_issues` | array of string | yes | Known artifacts and limits | `["Block offset artifacts", "Seams"]` |
-| `confidence_layer` | string or null | yes | Confidence layer file, if any | `"TBD"` |
-| `decision_affected` | string | yes | Which route or display decision this layer changes (F10) | TBD |
-| `verification_status` | string | yes | One of `decided`, `verified`, `checked`, `candidate`, `proposed`, `TBD` (PRD status legend) | `"candidate"` |
-| `source_url` | string | yes | Source page | TBD |
+| `instrument` | string | yes | Source instrument | `"CTX"` |
+| `product` | string | yes | Product name and version | `"CTX orthomosaic 008"` |
+| `acquisition_date` | string | yes | Date or range of the source data (ISO 8601) | `"<date or range>"` |
+| `resolution` | string | yes | Resolution with unit | `"6 m/px"` |
+| `license` | string | yes | License or usage terms | `"CC0 1.0 Universal; please cite Fergason et al., 2020"` |
+| `known_issues` | array of string | yes | Known artifacts and limits | `["<issue>"]` |
+| `confidence_layer` | string or null | yes | Confidence layer file, if any | `null` |
+| `decision_affected` | string | yes | Which route or display decision this layer changes | `"Visual background only; not used in route cost"` |
+| `verification_status` | string | yes | Status of the facts on the card. Currently `candidate` on every card | `"candidate"` |
+| `source_url` | string | yes | Source page | `"https://doi.org/10.5066/P9GV1ND3"` |
 
 Example:
 
 ```json
 [
   {
-    "id": "card-terrain-hirise",
-    "layer_name": "Terrain (HiRISE DTM)",
+    "id": "<card id>",
+    "layer_name": "Optical (CTX 6 m)",
     "mission": "MRO",
-    "instrument": "HiRISE",
-    "product": "DTM 006",
-    "acquisition_date": "TBD",
-    "resolution": "1 m/px",
-    "license": "TBD",
-    "known_issues": ["Known processing artifacts (PRD §7.1)", "TBD"],
-    "confidence_layer": "TBD",
-    "decision_affected": "TBD",
+    "instrument": "CTX",
+    "product": "CTX orthomosaic 008",
+    "acquisition_date": "<date or range>",
+    "resolution": "6 m/px",
+    "license": "CC0 1.0 Universal; please cite Fergason et al., 2020",
+    "known_issues": ["<issue>"],
+    "confidence_layer": null,
+    "decision_affected": "Visual background only; not used in route cost",
     "verification_status": "candidate",
-    "source_url": "TBD"
+    "source_url": "https://doi.org/10.5066/P9GV1ND3"
   }
 ]
 ```
 
+For a card about the terrain slope, `known_issues` must include the east-west slope issue described under `slope.npy`.
+
 ## routing/out/route_<name>.geojson
 
-Written by B, read by C. One GeoJSON `Feature` per route, with a `LineString` geometry in the same CRS as `grid.json`.
+Written by routing, read by web. One GeoJSON `Feature` per route, with a `LineString` geometry in the `grid.json` coordinate system.
 
 | Property | Type | Required | Description | Example |
-|---|---|---|---|---|
-| `name` | string | yes | Route name, matches the `<name>` in the file name | `"ea-01"` |
-| `start_poi` | string | yes | `id` of the start POI in `poi.geojson` | `"poi-001"` |
-| `end_poi` | string | yes | `id` of the end POI | `"poi-002"` |
-| `length_m` | number | yes | Route length in metres | TBD |
-| `max_slope_deg` | number | yes | Steepest slope along the route, degrees | TBD |
-| `slope_threshold_deg` | number | yes | Threshold used to avoid steep ground (F3 requires it to be documented) | TBD |
-| `data_used` | array of string | yes | Layer ids that affected the path (F10) | `["terrain", "spectral"]` |
-| `cost_function` | string | yes | Cost function description (F3 requires it to be documented) | TBD |
-| `generated_from` | string | yes | Commit hash and config used to generate the route | TBD |
+| --- | --- | --- | --- | --- |
+| `name` | string | yes | Route name, matches the `<name>` in the file name | `"<name>"` |
+| `start_poi` | string | yes | `id` of the start point in `poi.geojson` | `"<id>"` |
+| `end_poi` | string | yes | `id` of the end point in `poi.geojson` | `"<id>"` |
+| `length_m` | number | yes | Route length in metres | `<number>` |
+| `max_slope_deg` | number | yes | Steepest slope along the route, in degrees | `<number>` |
+| `slope_threshold_deg` | number | yes | Slope threshold used to avoid steep ground | `<number>` |
+| `data_used` | array of string | yes | Data that affected the path | `["slope"]` |
+| `cost_function` | string | yes | Short description of the cost function; full text in `docs/research/nico-routing-spec.md` | `"<description>"` |
+| `generated_from` | string | yes | Commit hash and parameter file used to generate the route | `"<commit hash>"` |
 
 Example:
 
 ```json
 {
   "type": "Feature",
-  "geometry": { "type": "LineString", "coordinates": [["TBD", "TBD"], ["TBD", "TBD"]] },
+  "geometry": { "type": "LineString", "coordinates": [["<number>", "<number>"], ["<number>", "<number>"]] },
   "properties": {
-    "name": "ea-01",
-    "start_poi": "poi-001",
-    "end_poi": "poi-002",
-    "length_m": "TBD",
-    "max_slope_deg": "TBD",
-    "slope_threshold_deg": "TBD",
-    "data_used": ["terrain", "spectral"],
-    "cost_function": "TBD",
-    "generated_from": "TBD"
+    "name": "<name>",
+    "start_poi": "<id>",
+    "end_poi": "<id>",
+    "length_m": "<number>",
+    "max_slope_deg": "<number>",
+    "slope_threshold_deg": "<number>",
+    "data_used": ["slope"],
+    "cost_function": "<description>",
+    "generated_from": "<commit hash>"
   }
 }
 ```
 
 ## validation/out/report.json
 
-Written by B, read by C and D. Metrics are computed by code only (PRD §9.4). Parameters are written and locked before the run (PRD §9.2).
+Written by validation, read by web. All metric values are computed by code. The parameters are written to `validation/params.json` and locked before any validation run.
 
 | Field | Type | Required | Description | Example |
-|---|---|---|---|---|
-| `report_id` | string | yes | Unique run id | `"val-001"` |
-| `generated_at` | string | yes | ISO 8601 timestamp (UTC) | TBD |
-| `code_commit` | string | yes | Commit hash of the code that produced the run | TBD |
-| `snapshot` | object | yes | Traverse snapshot used: `file`, `date`, `sol` | `{"file": "M20_traverse.json", "date": "2026-10-11", "sol": 1980}` |
-| `parameters` | object | yes | Locked parameters, including buffer width and slope threshold | TBD |
-| `metrics` | object | yes | Computed values. Candidate metrics: `buffer_overlap_ratio`, `dtw_distance`, `mean_segment_deviation_m` (PRD §9.2) | `{"buffer_overlap_ratio": null}` (values filled by code) |
-| `comparison_segments` | array of object | yes | Segments compared, each with `segment_id`, `sol_range`, `length_m`, and `selection_reason` (PRD §9.3) | TBD |
-| `notes` | string | yes | Honest summary, including any gap and its cause (PRD §9.4) | TBD |
+| --- | --- | --- | --- | --- |
+| `report_id` | string | yes | Unique run id | `"<id>"` |
+| `generated_at` | string | yes | ISO 8601 timestamp (UTC) | `"<timestamp>"` |
+| `code_commit` | string | yes | Commit hash of the code that produced the run | `"<commit hash>"` |
+| `reference` | object | yes | Reference data used: `file`, `release`, `downloaded`, `sha256`, `sol_range` | see example below |
+| `parameters` | object | yes | Locked parameters, copied from `validation/params.json` | `<object>` |
+| `metrics` | object | yes | Computed values; names are defined in `docs/research/nico-routing-spec.md` | `{"end_point_error_m": null}` |
+| `comparison_segments` | array of object | yes | Segments compared, each with `segment_id`, `sol_range`, `length_m` and `selection_reason` | see example below |
+| `notes` | string | yes | Honest summary, including any gap and its cause | `"<text>"` |
+
+The landing point is the first `frame = SITE` row of `best_interp.csv`. Its sol is recorded as `n/a`, not as sol 0.
 
 Example (metric values stay `null` until the code computes them):
 
 ```json
 {
-  "report_id": "val-001",
-  "generated_at": "TBD",
-  "code_commit": "TBD",
-  "snapshot": { "file": "M20_traverse.json", "date": "2026-10-11", "sol": 1980 },
-  "parameters": { "buffer_width_m": "TBD", "slope_threshold_deg": "TBD" },
-  "metrics": {
-    "buffer_overlap_ratio": null,
-    "dtw_distance": null,
-    "mean_segment_deviation_m": null
+  "report_id": "<id>",
+  "generated_at": "<timestamp>",
+  "code_commit": "<commit hash>",
+  "reference": {
+    "file": "best_interp.csv",
+    "release": "Release 16",
+    "downloaded": "2026-11-15",
+    "sha256": "58FBC62F2676195A00B40B2DA53A797A70284A8D2344B288C999D325B7CCB4CC",
+    "sol_range": "0 to 1897"
   },
+  "parameters": "<object copied from validation/params.json>",
+  "metrics": { "end_point_error_m": null },
   "comparison_segments": [
-    { "segment_id": "TBD", "sol_range": "TBD", "length_m": "TBD", "selection_reason": "TBD" }
+    { "segment_id": "<id>", "sol_range": "<sol range>", "length_m": "<number>", "selection_reason": "<text>" }
   ],
-  "notes": "TBD"
+  "notes": "<text>"
 }
 ```
 
-## Open items that block these files
+## Known limits
 
-- CRS name, the meaning of 18.4663°, and the unification of HiRISE and traverse projections (PRD §8.2, §12.6).
-- Elevation reference (`elev_geoid`) and SCLK conversion (PRD §12.6).
-- POI selection rule (PRD §3.2, §12.5).
-- CRISM product page, version, resolution, and license (PRD §7.3, §12.7).
-- Obstacle layer source (F5) and environment layer source (F9, §7.7).
+- The slope raster understates east-west slope by about 5% (see `slope.npy`). It was not recomputed.
+- Points of interest were selected by eye from the hillshade. They are not CRISM detections, and spectral data are not used in route cost.
+- The web page shows a static data snapshot, not live data.
+- Validation compares routes with the PLACES reference. The MMGIS files are a cross-check only and are not used to set parameters.

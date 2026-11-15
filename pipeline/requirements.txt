@@ -1,0 +1,17 @@
+affine==3.0.1
+attrs==26.1.0
+certifi==2026.10.23
+click==8.5.1
+ImageIO==2.38.1
+lazy-loader==0.6
+networkx==3.7
+numpy==2.5.4
+packaging==26.3
+pillow==13.0.0
+pyparsing==3.3.3
+rasterio==1.5.2
+scikit-image==0.27.0rc1
+scipy==1.18.1
+setuptools==84.2.1
+tifffile==2026.11.12
+wheel==0.48.0

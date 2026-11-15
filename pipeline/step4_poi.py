@@ -31,7 +31,7 @@ out_path     = REPO_ROOT / "data" / "processed" / "poi.geojson"
 GEO_CRS_PRIMARY  = "EPSG:49900"
 GEO_CRS_FALLBACK = "+proj=longlat +R=3396190 +no_defs"
 
-ALLOWED_SOURCES = {"CRISM", "optical"}
+ALLOWED_SOURCES = {"CRISM", "hillshade"}
 REQUIRED_COLS = ["id", "name", "type", "pixel_x", "pixel_y", "source", "evidence"]
 
 
