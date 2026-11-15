@@ -33,7 +33,7 @@ Rule followed: no number or claim goes into a research card without a source lin
 - Early drafts mixed Opportunity and Gale values into the "Jezero" environment cards; after VN asked for Jezero-only values, every card now says where a value was measured and Jezero data were added.
 - A claim from a second check list (Mendeley data set license "blank") was not used; the Mendeley page itself shows CC BY 4.0.
 
-## Entries for 15 Nov (fill in as you go)
+## Entries for 15 Nov
 | Date | Who | Tool and model | What it was used for | Human check |
 | --- | --- | --- | --- | --- |
 | 2026-11-15 | VN | Claude (claude.ai, web search on) | Checked Carter et al. 2013, JMARS terms, CRISM TRDR DOI, MEDA and RAD license sources; drafted vn-crism-jmars.md and vn-env-licenses.md | VN opened the Carter 2013 paper and checked that it uses CRISM targeted observations, read the JMARS terms page (citation policy and privacy only), and checked the TRDR DOI 10.17189/1519573 and the PDS FAQ; all matched |
