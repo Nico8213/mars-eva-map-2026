@@ -1,0 +1,181 @@
+{
+  "locked_commit": "d1965fd",
+  "run_date": "2026-11-15",
+  "run_notes": [],
+  "parameters": {
+    "params_file": {
+      "path": "validation/params.json",
+      "sha256": "68589B68F9B6C7EF49A92E3F885EEAA89D9085B1B5F62717C40696B7E23B8915"
+    },
+    "slope_limit_deg": 20.0,
+    "cost_base": 1.0,
+    "cost_coefficient": 1.0,
+    "cost_exponent": 2.0,
+    "connectivity": 8,
+    "r_snap_cells": 3,
+    "resampling_spacing_m": 1.0,
+    "d_tol_primary_m": 10,
+    "d_tol_sensitivity_m": [
+      5,
+      25
+    ],
+    "verdict_thresholds_M1": {
+      "close_match": {
+        "min_inclusive": 0.8
+      },
+      "partial_match": {
+        "min_inclusive": 0.5,
+        "max_exclusive": 0.8
+      },
+      "weak_match": {
+        "max_exclusive": 0.5
+      },
+      "evaluated_at_d_tol_m": 10,
+      "note": "M0, M2 and M3 have no pass/fail gate.",
+      "basis": "Spec section 4.5 verdict table: \"at least 0.80 | close match\"; \"at least 0.50 and below 0.80 | partial match\"; \"below 0.50 | weak match\". Text: \"Verdict labels use M1 at `d_tol` = 10 m.\" Section 4.8: \"verdict thresholds on M1: 0.80 and 0.50\"."
+    },
+    "projection": {
+      "radius_m": 3396190.0,
+      "aeqd_centre": {
+        "lat_deg": 18.46656407769292,
+        "lon_deg": 77.4293280568056
+      }
+    },
+    "reference_indices": {
+      "from": 0,
+      "to": 898,
+      "points": 899
+    }
+  },
+  "data_versions": {
+    "places": {
+      "path": "validation/data/best_interp.csv",
+      "sha256": "58FBC62F2676195A00B40B2DA53A797A70284A8D2344B288C999D325B7CCB4CC",
+      "bytes": 8684070,
+      "locked_sha256": "58FBC62F2676195A00B40B2DA53A797A70284A8D2344B288C999D325B7CCB4CC",
+      "match": true,
+      "release": "Mars 2020 Rover PLACES Bundle (PDS Geosciences Node), Release 16, posted 2026-08-11; sols 0 to 1897 in best_interp.csv (computed)",
+      "sol_range": [
+        0,
+        1897
+      ]
+    },
+    "grid": {
+      "path": "data/processed/grid.json",
+      "sha256": "667D2096F77E70F34A21AF1671A125FF9DE82D92C7269DAB3A39067DBCC0C152",
+      "bytes": 1427,
+      "locked_sha256": "667D2096F77E70F34A21AF1671A125FF9DE82D92C7269DAB3A39067DBCC0C152",
+      "match": true
+    },
+    "slope": {
+      "path": "data/processed/slope.npy",
+      "sha256": "1A7E0A2EA8E897BA3654D8407EE99019E0420A61824BC57F053E6C505889F49A",
+      "bytes": 64000128,
+      "locked_sha256": "1A7E0A2EA8E897BA3654D8407EE99019E0420A61824BC57F053E6C505889F49A",
+      "match": true
+    },
+    "params": {
+      "path": "validation/params.json",
+      "sha256": "68589B68F9B6C7EF49A92E3F885EEAA89D9085B1B5F62717C40696B7E23B8915",
+      "bytes": 43344
+    },
+    "router_config": {
+      "path": "routing/config.json",
+      "sha256": "5A1A991AC9BFEC63E798C764512F18FBBFED3872D9BE31B634C846FBBC8D39CA",
+      "bytes": 1834
+    },
+    "terrain": {
+      "name": "JEZ_hirise_soc_006_DTM_1m",
+      "version": "006"
+    }
+  },
+  "resampling": {
+    "method": "Both lines are built through cell centres (centre = outer corner + (index + 0.5) * pixel_size_m) and resampled at equal spacing along their length by linear interpolation in the local metre coordinates. The first and last vertex are kept at their exact positions; the last interval may be shorter than one pixel. Never interpolate in degrees. Method and spacing are written into report.json.",
+    "spacing_m": 1.0,
+    "route_samples": 728,
+    "reference_samples": 1273
+  },
+  "results": {
+    "status": "ok",
+    "reason": null,
+    "start": {
+      "cell": [
+        3300,
+        3277
+      ],
+      "snap_cells": 0.0,
+      "clamped": false
+    },
+    "end": {
+      "cell": [
+        3999,
+        3351
+      ],
+      "snap_cells": 0.0,
+      "clamped": false
+    },
+    "route_cost_find_path": 738.766393561179,
+    "route_cost_recomputed": 738.766393561179,
+    "route_length_m": 726.9999252239116,
+    "M0": {
+      "mean_m": 49.445414996329326,
+      "max_m": 129.4524803786412
+    },
+    "M1": {
+      "10": {
+        "overlap_ref": 0.14755217634069018,
+        "overlap_route": 0.24674775741096597,
+        "M1": 0.14755217634069018
+      },
+      "5": {
+        "overlap_ref": 0.07940284502980417,
+        "overlap_route": 0.13509480851389563,
+        "M1": 0.07940284502980417
+      },
+      "25": {
+        "overlap_ref": 0.29376957570963574,
+        "overlap_route": 0.4213855464398009,
+        "M1": 0.29376957570963574
+      }
+    },
+    "M2": {
+      "median_m": 34.27634306755558,
+      "p95_m": 127.30067925012663
+    },
+    "M3": {
+      "dtw_per_path_point_m": 63.67146791146537,
+      "warping_path_points": 1273
+    },
+    "end_point_error_m": {
+      "first": 0.3644000487209335,
+      "last": 0.3591385938369312,
+      "note": "The report must state that end_point_error_m includes a cell-centre offset of up to about 0.71 pixel (0.71 m at 1.0 m per pixel): our route ends at cell centres, which can be up to half a pixel in each axis from the true point (sqrt(2)/2 pixel in the worst case)."
+    },
+    "verdict": "weak match",
+    "caveat": "Report every declared tolerance and metric, including bad results. No cherry-picking. The comparison is a sanity check, not ground truth; the rover traverse is not the optimal route for a person on foot.",
+    "blocked_reference": {
+      "inside": 899,
+      "blocked": 0,
+      "share": 0.0,
+      "percent": 0.0,
+      "points": []
+    },
+    "reference_end_distance_to_lower_boundary_m": 0.837908506160602
+  },
+  "limitations": [
+    "the reference end point is on the bottom grid row, less than 1 m from the lower boundary, so the reference path leaves the grid there and does not stop naturally",
+    "PLACES segment 3 (sol 353-386) 2147.661 m vs MMGIS 2716.261 m, unexplained; no parameter changed because of it",
+    "east-west slope underestimated by about 5%",
+    "0 of 899 reference points (0.00%) lie in cells blocked by the slope limit",
+    "not used in v1; state as a limitation in the report",
+    "known limitation; stated in routing/README.md",
+    "The report must state that end_point_error_m includes a cell-centre offset of up to about 0.71 pixel (0.71 m at 1.0 m per pixel): our route ends at cell centres, which can be up to half a pixel in each axis from the true point (sqrt(2)/2 pixel in the worst case).",
+    "Report every declared tolerance and metric, including bad results. No cherry-picking. The comparison is a sanity check, not ground truth; the rover traverse is not the optimal route for a person on foot.",
+    "latitude type not stated in official documentation. Calculations treat the MMGIS latitude as planetocentric, for cross-check only.",
+    "Spec says this is a rover reference, not a human or spacesuit limit, and is a team choice.",
+    "max slope is taken at pixel centres",
+    "8-neighbour moves can cut corners",
+    "the traverse has no dist_total, so ties are resolved by file order, not by distance",
+    "PLACES segment 1 ends where later points leave the grid"
+  ]
+}
