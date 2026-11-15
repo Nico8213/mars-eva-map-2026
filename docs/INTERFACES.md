@@ -18,7 +18,7 @@ Values written in angle brackets, such as `<integer>`, are placeholders that sho
 
 - All files are UTF-8. JSON files use 2-space indentation.
 - Units: lengths in metres, angles in degrees, time in ISO 8601 (UTC).
-- Grid coordinates are projected easting/northing in metres. The grid coordinate system is the one of the HiRISE DTM: equirectangular, true-scale latitude 0, central meridian 0, Mars sphere with radius R = 3396190 m. The 18.4663° standard parallel used by the PLACES map convention is not used.
+- Grid coordinates (`grid.json`, `slope.npy` and the layer extents) are projected easting/northing in metres. The grid coordinate system is the one of the HiRISE DTM: equirectangular, true-scale latitude 0, central meridian 0, Mars sphere with radius R = 3396190 m. The 18.4663° standard parallel used by the PLACES map convention is not used. The one exception is `poi.geojson`, which stores longitude and latitude in degrees (planetocentric latitude, Mars sphere R = 3396190 m).
 - Every number carries a source and a version. All sources are listed in `docs/CITATIONS.md`.
 - The top-left corner of pixel (row, col) is at easting = top-left easting + col × pixel size and northing = top-left northing − row × pixel size. Northing increases upward; image rows increase downward. The pixel centre is at the corner position plus half a pixel.
 - Pipeline order: download and crop the DTM → unify coordinates → slope raster → points of interest → least-cost path on the grid → export GeoJSON → web display. Each file below is produced at one of these steps.
@@ -87,7 +87,7 @@ slope = np.load("data/processed/slope.npy")  # shape (height, width), degrees
 
 Written by the pipeline, read by web.
 
-Each PNG is one semi-transparent RGBA image for one layer. The Optical layer comes from the CTX mosaic (6 m/px) and is used as visual background only; it does not affect route cost. There is no spectral layer: spectral (CRISM) information is a reference only and is not drawn on the map.
+Each PNG is one semi-transparent RGBA image for one layer. The Optical layer comes from the CTX mosaic (6 m/px) and is used as visual background only; it does not affect route cost. The web page shows three layers: Slope, Hillshade and Optical (CTX 6 m). There is no spectral layer: spectral (CRISM) information is a reference only and is not drawn on the map.
 
 `layers.json` is an array with one object per PNG:
 
@@ -125,7 +125,7 @@ Each feature:
 | Property | Type | Required | Description | Example |
 | --- | --- | --- | --- | --- |
 | `geometry.type` | string | yes | `"Point"` | `"Point"` |
-| `geometry.coordinates` | [number, number] | yes | `[easting_m, northing_m]` in the `grid.json` coordinate system | `<numbers>` |
+| `geometry.coordinates` | [number, number] | yes | `[longitude_deg, latitude_deg]` in degrees (planetocentric latitude, Mars sphere R = 3396190 m). These are not grid metres | `<numbers>` |
 | `id` | string | yes | Unique POI id | `"<id>"` |
 | `name` | string | yes | Display name | `"Cliff A"` |
 | `type` | string | yes | POI category | `"<category>"` |
@@ -155,7 +155,7 @@ Example:
 }
 ```
 
-Note: the GeoJSON standard (RFC 7946) assumes longitude/latitude on Earth (WGS84). The coordinates in this project are projected Mars metres in the grid coordinate system, so a generic GeoJSON viewer will place the points in the wrong place.
+Note: the GeoJSON standard (RFC 7946) assumes Earth longitude/latitude (WGS84). The coordinates here are Mars longitude/latitude on a sphere of radius 3396190 m, so do not draw them on an Earth map. Routing and the web page convert them to grid coordinates themselves.
 
 ## data/processed/data_cards.json
 
@@ -174,7 +174,7 @@ Written by the pipeline, read by web. An array with one data card per layer.
 | `known_issues` | array of string | yes | Known artifacts and limits | `["<issue>"]` |
 | `confidence_layer` | string or null | yes | Confidence layer file, if any | `null` |
 | `decision_affected` | string | yes | Which route or display decision this layer changes | `"Visual background only; not used in route cost"` |
-| `verification_status` | string | yes | Status of the facts on the card | `"<status>"` |
+| `verification_status` | string | yes | Status of the facts on the card. Currently `candidate` on every card | `"candidate"` |
 | `source_url` | string | yes | Source page | `"https://doi.org/10.5066/P9GV1ND3"` |
 
 Example:
@@ -193,7 +193,7 @@ Example:
     "known_issues": ["<issue>"],
     "confidence_layer": null,
     "decision_affected": "Visual background only; not used in route cost",
-    "verification_status": "<status>",
+    "verification_status": "candidate",
     "source_url": "https://doi.org/10.5066/P9GV1ND3"
   }
 ]
