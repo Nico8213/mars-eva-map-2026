@@ -272,3 +272,5 @@ Austin may rename the keys. Every line must exist in some form. Values shown as 
   "verdict_thresholds_M1": { "close": 0.80, "partial": 0.50 }
 }
 ```
+
+15 Nov 2026 (note added after the validation run): The DTW tie order (diagonal, then (i-1, j), then (i, j-1)) was written in the docstring of run_validation.py in commit b67fe56 (14:59), before the results commit e051946 (15:02). The editor of this spec agreed to the rule after the run, as stated in README (PR #44). M3 is a report metric only and has no pass/fail gate.
