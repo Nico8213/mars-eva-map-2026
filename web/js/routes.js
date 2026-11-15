@@ -39,22 +39,24 @@
     return box;
   }
 
+  // Route points are projected metres [easting, northing]. Convert them to image
+  // pixels with the grid.json origin and pixel size, then place the pixels inside
+  // the image extent, so routes use the same map units as the layers and POIs.
+  function gridToLatLng(grid) {
+    var v = Cockpit.extentToBounds(Cockpit.layerEntries[0].extent); // [[south, west], [north, east]]
+    return function (coord) {
+      var col = (coord[0] - grid.top_left_x_m) / grid.pixel_size_m;
+      var row = (grid.top_left_y_m - coord[1]) / grid.pixel_size_m;
+      return L.latLng(
+        v[1][0] - (row / grid.height) * (v[1][0] - v[0][0]),
+        v[0][1] + (col / grid.width) * (v[1][1] - v[0][1])
+      );
+    };
+  }
   // Draw one route: a dark casing line below a bright line, so it is visible
   // on every layer. Only the bright line is clickable.
   function drawRoute(feature, group, grid) {
-    var toLatLng = Cockpit.toLatLng;
-
-    // 根据 Austin 的要求，如果存在 grid.json，则将网格米(Easting/Northing)转换为页面坐标(x/y)
-    if (grid && grid.pixel_size_m) {
-      toLatLng = function (coords) {
-        var easting = coords[0];
-        var northing = coords[1];
-        var x = (easting - grid.top_left_x_m) / grid.pixel_size_m;
-        var y = (grid.top_left_y_m - northing) / grid.pixel_size_m;
-        return Cockpit.toLatLng([x, y]);
-      };
-    }
-
+    var toLatLng = gridToLatLng(grid);
     var casing = L.geoJSON(feature, {
       coordsToLatLng: toLatLng,
       pane: 'routes',
@@ -102,10 +104,8 @@
     var group = L.layerGroup();
     var drawn = 0;
 
-    // 优先读取 grid.json 获取网格参数，再去渲染 routes
-    Cockpit.loadJson('grid.json').catch(function () {
-      return null; // 如果文件不存在则安全降级，不抛出异常
-    }).then(function (grid) {
+    // Grid parameters are required for the conversion; any failure ends in the catch below.
+    Cockpit.loadJson('grid.json').then(function (grid) {
       return Cockpit.loadJson('routes/index.json').then(function (files) {
         if (!Array.isArray(files)) { throw new Error('routes/index.json is not a list'); }
         // One failed file must not stop the others.
