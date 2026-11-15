@@ -20,6 +20,8 @@ Rule followed: no number or claim goes into a research card without a source lin
 | 2026-11-14 | VN | Claude (claude.ai, web search on) | Read the PDS Rover PLACES page, release notes and Software Interface Specification and drafted `docs/research/vn-perseverance-traverse.md` | [VN: same as above] |
 | 2026-11-14 | VN | Claude (claude.ai, web search on) | Searched for Jezero rock and mineral data sets and drafted `docs/research/vn-rocks.md` | [VN: same as above] |
 | 2026-11-14 | VN | Claude (claude.ai) | Explained how to create files and commit on GitHub in the browser; checked screenshots of the commit dialog (file name, commit message format, branch choice) | VN committed the files herself/himself |
+| 2026-11-15 | VN | Claude (claude.ai, web search on) | Checked NASA location-map page, PLACES, PRD text; drafted updated vn-perseverance-traverse.md and the F10 proposal | [VN: what you checked] |
+| 2026-11-15 | VN | Claude (claude.ai, web search on) | Checked Carter et al. 2013, JMARS terms, CRISM TRDR DOI, MEDA and RAD license sources; drafted vn-crism-jmars.md and vn-env-licenses.md | [VN: what you checked] |
 
 ## What the AI did NOT do
 - It did not download any data file (the AI session could not download PDS or Zenodo files), so file sizes and row counts in the cards are copied from web pages or marked as unknown.

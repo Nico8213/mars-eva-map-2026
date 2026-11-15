@@ -99,7 +99,7 @@ np.save(slope_npy_path, slope_deg)
 # Fallback: Proj4 string for the same ellipsoid
 # ---------------------------------------------------------------------------
 GEO_CRS_PRIMARY = "EPSG:49900"
-GEO_CRS_FALLBACK = "+proj=longlat +a=3396190 +b=3376200 +no_defs"
+GEO_CRS_FALLBACK = "+proj=longlat +R=3396190 +no_defs"
 
 def _reproject_point(x: float, y: float, src_crs, dst_crs: str):
     """Return (lon, lat) reprojected from src_crs to dst_crs."""
@@ -120,8 +120,8 @@ except Exception:
     crs_used = GEO_CRS_FALLBACK
     coordinate_notes = (
         "Top-left corner reprojected from the native projected CRS to "
-        "Mars geographic coordinates using the IAU oblate ellipsoid "
-        f"(Proj4: {GEO_CRS_FALLBACK}). "
+        "Mars geographic coordinates on the IAU 2000 sphere "
+        "(radius 3396190 m, planetocentric latitude). "
         "Longitude and latitude are in degrees; positive east, positive north."
     )
 
